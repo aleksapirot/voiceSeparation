@@ -5,8 +5,9 @@ import os
 dir = '../base/MIR-1K/Wavfile/'
 results = {}
 i = 1
-count = 1000
+count = len(os.listdir(dir))
 algorithm = 'dmf'
+resfolder = '2'
 funcs = {'repet': repet, 'repet-h': repeth, 'adaptive-repet': adtrepet, 'repet-sim': None, 'horver': horver, 'dmf': dmf, 'plca': None}
 for name in os.listdir(dir)[0:count]:
     print('{}/{}'.format(i, count))
@@ -19,13 +20,12 @@ for name in os.listdir(dir)[0:count]:
 
     voice, music = funcs[algorithm](audio, rate)
 
-    # save(music, rate, '../results/{}/{}-music.wav'.format(algorithm, name))
-    # save(voice, rate, '../results/{}/{}-voice.wav'.format(algorithm, name))
+    #save(music, rate, '../results{}/{}/{}-music.wav'.format(resfolder, algorithm, name))
+    #save(voice, rate, '../results{}/{}/{}-voice.wav'.format(resfolder, algorithm, name))
 
-    sar, sir, sdr = evaluate(audior, audiol, voice, music)
+    sdr, sir, sar = evaluate(audior, audiol, voice, music)
     results[name] = {'SDR': sdr, 'SIR': sir, 'SAR': sar}
 
-file = open('../results/{}/metrics.txt'.format(algorithm), 'w+')
 avgsdr = np.zeros(2)
 avgsir = np.zeros(2)
 avgsar = np.zeros(2)
@@ -41,6 +41,7 @@ minsirv = 100
 minsirm = 100
 minsarv = 100
 minsarm = 100
+file = open('../results{}/{}/metrics.txt'.format(resfolder, algorithm), 'w+')
 for song in results:
     sdr = results[song]['SDR']
     sir = results[song]['SIR']
