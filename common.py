@@ -7,24 +7,28 @@ import mir_eval as ev
 # ucitava audio fajl
 def load(path, mono = False):
     (rate, audio) = wf.read(path)
-    audiol = audio[:, 0]
-    audior = audio[:, 1]
-    if mono:
-        audio = audiol // 2 + audior // 2
-        return (rate, np.trim_zeros(audio))
+    if (audio.ndim == 2):
+        audiol = audio[:, 0]
+        audior = audio[:, 1]
+        if mono:
+            audio = audiol / 2 + audior / 2
+            return (rate, np.trim_zeros(audio))
+        else:
+            return (rate, audiol, audior)
     else:
-        return (rate, audiol, audior)
+        return (rate, audio)
 
 
 # cuva audio fajl
 def save(audio, rate, path):
-    wf.write(open(path, 'wb+'), rate, audio/np.max(np.abs(audio)))
+    # print(np.max(audio), np.min(audio))
+    wf.write(open(path, 'wb+'), rate, audio.astype(np.int16))#audio/np.max(np.abs(audio)))
 
 
 # spectrogram
 def magspect(audio, rate, winlen, overlap=0.5, square=False):
     f, t, spect = signal.stft(audio, fs=rate, noverlap=round(winlen * overlap), window=signal.hamming(winlen, False), nperseg=winlen)
-    spect = spect
+
     if (square):
         spect = np.square(np.abs(spect))
     cspect = spect # kompleksan spektrogram
