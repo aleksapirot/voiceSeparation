@@ -16,9 +16,10 @@ def beatspect(spect):
         for h in range(w):
             V[:,h]=spect[:, min(h+j-w//2, m-1)]**2
         for i in range(n):
-            result = np.correlate(V[i], V[i], mode='full')
+            '''result = np.correlate(V[i], V[i], mode='full')
             result = result[result.size // 2:]
-            A[i] = result * np.exp(np.linspace(0, 1.7, num=result.size))
+            A[i] = result * np.exp(np.linspace(0, 1.7, num=result.size))'''
+            A[i] = autocorrel(V[i])
         B[:, j] = np.mean(A, axis=0)
 
         print('Gotov frame {}'.format(j))

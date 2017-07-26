@@ -1,4 +1,5 @@
 from common import *
+from repet_speedup import *
 
 
 # racuna beat spectrum
@@ -12,9 +13,10 @@ def beat(spect):
             for k in range(m-j):
                 sum += spect[i][k]*spect[i][k + j]
             B[i][j] = sum/(m-j)'''
-        result = np.correlate(spect[i], spect[i], mode='full')
-        result = result[result.size // 2:]
-        B[i] = result * np.exp(np.linspace(0, 1.7, num=result.size))
+        #result = np.correlate(spect[i], spect[i], mode='full')
+        #result = result[result.size // 2:]
+        #B[i] = result * np.exp(np.linspace(0, 1.7, num=result.size))
+        B[i] = autocorrel(spect[i].astype(np.float64))
 
     b = np.ndarray([m])
     for j in range(m):
@@ -26,7 +28,7 @@ def beat(spect):
             b[j] /= b[0]
     b[0] = 1
 
-    return b[:]
+    return b
 
 
 # racuna period
@@ -103,7 +105,7 @@ def repet(audio, rate):
 def rpt(audio, rate, highpass):
     winlen = 1024
     f, t, cspect, spect = magspect(audio, rate, winlen=winlen)
-    # plotspect((f, t, spect))
+    #plotspect((f, t, spect))
 
     bt = beat(spect)
     # plt.plot(t, bt)
