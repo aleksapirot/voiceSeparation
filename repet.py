@@ -8,14 +8,6 @@ def beat(spect):
     m = spect.shape[1]
     B = np.ndarray((n, m))
     for i in range(n):
-        '''for j in range(m):
-            sum = 0
-            for k in range(m-j):
-                sum += spect[i][k]*spect[i][k + j]
-            B[i][j] = sum/(m-j)'''
-        #result = np.correlate(spect[i], spect[i], mode='full')
-        #result = result[result.size // 2:]
-        #B[i] = result * np.exp(np.linspace(0, 1.7, num=result.size))
         B[i] = autocorrel(spect[i].astype(np.float64))
 
     b = np.ndarray([m])
@@ -37,7 +29,7 @@ def period(beat):
     l = len(b)
     d = 2
     J = np.zeros([l // 3])
-    minper = 1
+    minper = 25
     for j in range(minper, l // 3):
         D = 3 * j // 4
         I = 0
@@ -108,10 +100,12 @@ def rpt(audio, rate, highpass):
     #plotspect((f, t, spect))
 
     bt = beat(spect)
-    # plt.plot(t, bt)
+    #plt.plot(t, bt)
+    #plt.show()
 
     per = period(bt)
-    # print(t[per])
+    #print(t[per])
+    #print(per)
 
     seg = segment(spect, per)
     # plotspect((f, t[0:per], seg))
