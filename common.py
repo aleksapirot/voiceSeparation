@@ -16,7 +16,7 @@ def load(path, mono = False):
         else:
             return (rate, audiol, audior)
     else:
-        return (rate, audio)
+        return (rate, np.trim_zeros(audio))
 
 
 # cuva audio fajl
