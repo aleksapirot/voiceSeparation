@@ -33,8 +33,15 @@ def dmf(audio, rate):
     d5 = diagfilter(spectl, -1, 1, horbinl)
     d6 = diagfilter(spectl, -1, 2, horbinl)
 
-    hfl = np.max([hfl, d1, d2, d3, d4, d5, d6], axis=(0,1))
+    h = horbinl//2
+    m=spectl.shape[0]
+    hfl[h:m-h] = matrixmax(np.dstack([hfl[h:m - h], d1[h:m - h], d2[h:m - h], d3[h:m - h], d4[h:m - h], d5[h:m - h], d6[h:m - h]]))
+    h = horbinl
+    hfl[h:m - h] = matrixmax(np.dstack([hfl[h:m - h], d1[h:m - h], d2[h:m - h], d3[h:m - h], d4[h:m - h], d5[h:m - h], d6[h:m - h]]))
+
     mhl = hfl ** 2 / (vfl ** 2 + hfl ** 2)  # maska za glas
+    '''plt.pcolormesh(mhl)
+    plt.show()'''
 
     voc = inversestft(cspectl * mhl, winlenl, (winlenl - stepl) / winlenl)[:len(audio)] # samo vokali
     mus = audio-voc # samo muzika

@@ -2,46 +2,20 @@ from common import *
 from repet_speedup import *
 
 
+def autocor(spect):
+    m = spect.shape[0]
+    return signal.correlate(spect ** 2, spect ** 2)[m - 1:] / np.arange(m, 0, -1)
+
 # racuna beat spectrum
+# moglo bi se prebaciti u cython
 def beat(spect):
     n = spect.shape[0] // 2 + 1
     m = spect.shape[1]
     B = np.ndarray((n, m))
     for i in range(n):
-        B[i] = autocorrel(spect[i].astype(np.float64))
+        B[i] = autocor(spect[i])
 
-    b = np.ndarray([m])
-    for j in range(m):
-        sum = 0
-        for i in range(n):
-            sum += B[i][j]
-        b[j] = sum / n
-        if j > 0:
-            b[j] /= b[0]
-    b[0] = 1
-
-    return b
-
-
-# racuna period
-def period(beat):
-    b = beat[:3 * len(beat) // 4]
-    l = len(b)
-    d = 2
-    J = np.zeros([l // 3])
-    minper = 25
-    for j in range(minper, l // 3):
-        D = 3 * j // 4
-        I = 0
-        for i in range(j, l, j):
-            h = np.argmax(b[np.max([i - d, 0]):np.min([i + d + 1, l])])
-            if (h + D - d) == np.argmax(b[i - D:np.min([i + D + 1, l])]):
-                I += b[h] - np.mean(b[i - D:np.min([i + D + 1, l])])
-        J[j] = I / (l // j)
-
-    p = np.max([np.argmax(J), minper])
-
-    return p
+    return bspectrum(B)
 
 
 # deli spektrogram na periode
