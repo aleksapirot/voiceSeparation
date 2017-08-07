@@ -27,7 +27,7 @@ stepl = 256
 
 # ne koriste se dijagonalni filteri, samo horizontalni i vertikalni
 def horver(audio, rate):
-    fh, th, cspecth, specth = magspect(audio, rate, winlenh, (winlenh - steph) / winlenh)
+    fh, th, cspecth, specth = magspect(audio, rate, winlenh, winlenh - steph)
     specth = specth.astype(np.float64)
     #specth = specth*np.ones(specth.shape, dtype=np.float)
 
@@ -48,9 +48,9 @@ def horver(audio, rate):
    # plt.colorbar()
    # plt.show()
 
-    vocper = inversestft(cspecth * mph, winlenh, (winlenh - steph) / winlenh) # vokali sa perkusijama
+    vocper = inversestft(cspecth * mph, winlenh, winlenh - steph) # vokali sa perkusijama
 
-    fl, tl, cspectl, spectl = magspect(vocper, rate, winlenl, (winlenl - stepl) / winlenl)
+    fl, tl, cspectl, spectl = magspect(vocper, rate, winlenl, winlenl - stepl)
     spectl = spectl.astype(np.float64)
 
     verbinl = hztobins(hzl, winlenl, rate)
@@ -63,7 +63,7 @@ def horver(audio, rate):
     '''plt.pcolormesh(mhl)
     plt.show()'''
 
-    voc = inversestft(cspectl * mhl, winlenl, (winlenl - stepl) / winlenl)[:len(audio)] # samo vokali
+    voc = inversestft(cspectl * mhl, winlenl, winlenl - stepl)[:len(audio)] # samo vokali
     mus = audio-voc # samo muzika
 
     return voc, mus

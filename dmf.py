@@ -5,7 +5,7 @@ from diagfilt import *
 def dmf(audio, rate):
     # sufiks h -za spektrogram visoke frenkvecijske rezolucije
     # l -... niske rezolucije
-    fh, th, cspecth, specth = magspect(audio, rate, winlenh, (winlenh - steph) / winlenh)
+    fh, th, cspecth, specth = magspect(audio, rate, winlenh, winlenh - steph)
     specth = specth.astype(np.float64)
 
     verbinh = hztobins(hzh, winlenh, rate)
@@ -15,9 +15,9 @@ def dmf(audio, rate):
 
     mph = vfh ** 2 / (hfh ** 2 + vfh ** 2) # maska za perkusije (i glas)
 
-    vocper = inversestft(cspecth * mph, winlenh, (winlenh - steph) / winlenh) # vokali sa perkusijama
+    vocper = inversestft(cspecth * mph, winlenh, winlenh - steph) # vokali sa perkusijama
 
-    fl, tl, cspectl, spectl = magspect(vocper, rate, winlenl, (winlenl - stepl) / winlenl)
+    fl, tl, cspectl, spectl = magspect(vocper, rate, winlenl, winlenl - stepl)
     spectl = spectl.astype(np.float64)
 
     verbinl = hztobins(hzl, winlenl, rate)
@@ -43,7 +43,7 @@ def dmf(audio, rate):
     '''plt.pcolormesh(mhl)
     plt.show()'''
 
-    voc = inversestft(cspectl * mhl, winlenl, (winlenl - stepl) / winlenl)[:len(audio)] # samo vokali
+    voc = inversestft(cspectl * mhl, winlenl, winlenl - stepl)[:len(audio)] # samo vokali
     mus = audio-voc # samo muzika
 
     return voc, mus

@@ -26,19 +26,21 @@ def save(audio, rate, path):
 
 
 # spectrogram
-def magspect(audio, rate, winlen, overlap=0.5, square=False):
-    f, t, spect = signal.stft(audio, fs=rate, noverlap=round(winlen * overlap), window=signal.hamming(winlen, False), nperseg=winlen)
+def magspect(audio, rate, winlen, noverlap=None):
+    if noverlap is None:
+        noverlap = winlen//2
+    f, t, spect = signal.stft(audio, fs=rate, noverlap=noverlap, window=signal.hamming(winlen, False), nperseg=winlen)
 
-    if (square):
-        spect = np.square(np.abs(spect))
     cspect = spect # kompleksan spektrogram
     spect = np.abs(spect) # absolutna vrednost spektrograma
     return (f, t, cspect, spect)
 
 
 # inverse stft
-def inversestft(spect, winlen, overlap=0.5):
-    return signal.istft(spect, nperseg=winlen, noverlap=round(winlen*overlap), window=signal.hamming(winlen, False))[1]
+def inversestft(spect, winlen, noverlap=None):
+    if noverlap is None:
+        noverlap = winlen//2
+    return signal.istft(spect, nperseg=winlen, noverlap=noverlap, window=signal.hamming(winlen, False))[1]
 
 
 #plotuje spectrogram
