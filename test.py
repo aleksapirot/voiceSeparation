@@ -1,29 +1,44 @@
 from adaptive_repet import *
 from dmf import *
+from plca import *
 import os
+import sys
 
 dir = '../base/MIR-1K/Wavfile/'
 results = {}
 i = 1
-count = len(os.listdir(dir))
-algorithm = 'dmf'
-resfolder = '2'
-funcs = {'repet': repet, 'repet-h': repeth, 'adaptive-repet': adtrepet, 'repet-sim': None, 'horver': horver, 'dmf': dmf, 'plca': None}
+count = 5#len(os.listdir(dir))
+algorithm = 'hor-rh'
+resfolder = '' # jer nekad cuvamo u results nekad u results2
+metrics = '' # isto menjamo i ime fajla
+funcs = {'repet': repet, 'repet-h': repeth, 'adaptive-repet': adtrepet, 'repet-sim': None, 'horver': horver, 'dmf': dmf, 'plca': plca}
+#train()
 for name in os.listdir(dir)[0:count]:
     print('{}/{}'.format(i, count))
     i += 1
 
-    name = name[:-4]
-
+    name=name[:-4]
     rate, audiol, audior = load('{}{}.wav'.format(dir, name))
     audio = audiol // 2 + audior // 2
 
-    voice, music = funcs[algorithm](audio, rate)
+    #voice, music = funcs[algorithm](audio, rate)
+    voice1, music1 = horver(audio, rate)
+    voice2, music2 = repeth(voice1, rate)
+    voice3, music3 = repeth(music1, rate)
+    voice = voice2 + voice3
+    music = music2 + music3#
+    #voice,music=plca(audio, rate)
 
-    #save(music, rate, '../results{}/{}/{}-music.wav'.format(resfolder, algorithm, name))
-    #save(voice, rate, '../results{}/{}/{}-voice.wav'.format(resfolder, algorithm, name))
+    if i < 10:
+        save(music, rate, '../results{}/{}/{}-music.wav'.format(resfolder, algorithm, name))
+        save(voice, rate, '../results{}/{}/{}-voice.wav'.format(resfolder, algorithm, name))
 
+
+    #save(music, rate, '../results{}/{}-music.wav'.format(resfolder, metrics))
+    #save(voice, rate, '../results{}/{}-voice.wav'.format(resfolder, metrics))
+    #print('gotov plca')
     sdr, sir, sar = evaluate(audior, audiol, voice, music)
+    #print(sdr,sir,sar)
     results[name] = {'SDR': sdr, 'SIR': sir, 'SAR': sar}
 
 avgsdr = np.zeros(2)
@@ -41,36 +56,36 @@ minsirv = 100
 minsirm = 100
 minsarv = 100
 minsarm = 100
-file = open('../results{}/{}/metrics.txt'.format(resfolder, algorithm), 'w+')
+file = open('../results{}/{}/metrics{}.txt'.format(resfolder, algorithm, metrics), 'w+')
 for song in results:
     sdr = results[song]['SDR']
     sir = results[song]['SIR']
     sar = results[song]['SAR']
 
-    if (sdr[0] > maxsdrv):
+    if sdr[0] > maxsdrv:
         maxsdrv = sdr[0]
-    if (sdr[1] > maxsdrm):
+    if sdr[1] > maxsdrm:
         maxsdrm = sdr[1]
-    if (sir[0] > maxsirv):
+    if sir[0] > maxsirv:
         maxsirv = sir[0]
-    if (sir[1] > maxsirm):
+    if sir[1] > maxsirm:
         maxsirm = sir[1]
-    if (sar[0] > maxsarv):
+    if sar[0] > maxsarv:
         maxsarv = sar[0]
-    if (sar[1] > maxsarm):
+    if sar[1] > maxsarm:
         maxsarm = sar[1]
 
-    if (sdr[0] < minsdrv):
+    if sdr[0] < minsdrv:
         minsdrv = sdr[0]
-    if (sdr[1] < minsdrm):
+    if sdr[1] < minsdrm:
         minsdrm = sdr[1]
-    if (sir[0] < minsirv):
+    if sir[0] < minsirv:
         minsirv = sir[0]
-    if (sir[1] < minsirm):
+    if sir[1] < minsirm:
         minsirm = sir[1]
-    if (sar[0] < minsarv):
+    if sar[0] < minsarv:
         minsarv = sar[0]
-    if (sar[1] < minsarm):
+    if sar[1] < minsarm:
         minsarm = sar[1]
 
     print(
