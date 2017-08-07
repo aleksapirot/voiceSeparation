@@ -4,6 +4,7 @@ import decimal
 import numpy
 import math
 import logging
+from mfcc_speedup import *
 
 
 def round_half_up(number):
@@ -257,6 +258,7 @@ def mel2hz(mel):
     return 700 * (10 ** (mel / 2595.0) - 1)
 
 
+'''# TODO Cython
 def get_filterbanks(nfilt=20, nfft=512, samplerate=16000, lowfreq=0, highfreq=None):
     """Compute a Mel-filterbank. The filters are stored in the rows, the columns correspond
     to fft bins. The filters are returned as an array of size nfilt * (nfft/2 + 1)
@@ -285,7 +287,7 @@ def get_filterbanks(nfilt=20, nfft=512, samplerate=16000, lowfreq=0, highfreq=No
             fbank[j, i] = (i - bin[j]) / (bin[j + 1] - bin[j])
         for i in range(int(bin[j + 1]), int(bin[j + 2])):
             fbank[j, i] = (bin[j + 2] - i) / (bin[j + 2] - bin[j + 1])
-    return fbank
+    return fbank'''
 
 
 def lifter(cepstra, L=22):
