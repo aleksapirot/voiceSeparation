@@ -2,7 +2,7 @@ import scipy.io.wavfile as wf
 import scipy.signal as signal
 import matplotlib.pyplot as plt
 import numpy as np
-import mir_eval as ev
+import separation
 
 # ucitava audio fajl
 def load(path, mono = False):
@@ -56,6 +56,6 @@ def plotspect(stft, maxcoef=0.8):
 
 # vraca SDR, SIR i SAR
 def evaluate(origv, origm, algv, algm):
-    return ev.separation.bss_eval_sources(np.vstack((origv, origm)), np.vstack((algv, algm)))[0:3]
+    return separation.bss_eval_sources(np.vstack((origv, origm)), np.vstack((algv, algm)), False)[0:3]
 
 
