@@ -2,7 +2,6 @@ from adaptive_repet import *
 from dmf import *
 from plca import *
 import os
-import sys
 
 
 def test():
@@ -13,7 +12,8 @@ def test():
     algorithm = 'repet'
     resfolder = '2'  # jer nekad cuvamo u results nekad u results2
     metrics = '-Test'  # isto menjamo i ime fajla
-    funcs = {'repet': repet, 'repet-h': repeth, 'adaptive-repet': adtrepet, 'repet-sim': None, 'horver': horver, 'dmf': dmf,
+    funcs = {'repet': repet, 'repet-h': repeth, 'adaptive-repet': adtrepet, 'repet-sim': None, 'horver': horver,
+             'dmf': dmf,
              'plca': plca}
     # train()
     for name in os.listdir(dir)[0:count]:
@@ -104,8 +104,9 @@ def test():
     avgsar /= len(results)
 
     # print(results, file=file)
-    print('\nAverage:\nSDR [{0[0]:05.2f}  {0[1]:05.2f}]\nSIR [{1[0]:05.2f}  {1[1]:05.2f}]\nSAR [{2[0]:05.2f}  {2[1]:05.2f}]'
-          .format(avgsdr, avgsir, avgsar), file=file)
+    print(
+        '\nAverage:\nSDR [{0[0]:05.2f}  {0[1]:05.2f}]\nSIR [{1[0]:05.2f}  {1[1]:05.2f}]\nSAR [{2[0]:05.2f}  {2[1]:05.2f}]'
+        .format(avgsdr, avgsir, avgsar), file=file)
 
     print('\nMaximums:\nSDR [{0:05.2f}  {1:05.2f}]\nSIR [{2:05.2f}  {3:05.2f}]\nSAR [{4:05.2f}  {5:05.2f}]'.format(
         maxsdrv, maxsdrm, maxsirv, maxsirm, maxsarv, maxsarm), file=file)
@@ -114,5 +115,4 @@ def test():
         minsdrv, minsdrm, minsirv, minsirm, minsarv, minsarm), file=file)
     file.close()
 
-
-#test()
+# test()

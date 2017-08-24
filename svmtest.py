@@ -6,30 +6,30 @@ import cProfile as cp
 
 def main():
     seglen = 9
-    segstart=10
-    mul=320
+    segstart = 10
+    mul = 320
 
     files = os.listdir('../base/MIR-1K/Wavfile')
-    #np.random.seed(0)
-    #np.random.shuffle(files)
+    # np.random.seed(0)
+    # np.random.shuffle(files)
     rates = np.empty(len(files))
-    audios = np.empty((len(files), seglen*mul))
+    audios = np.empty((len(files), seglen * mul))
     labels = np.empty((len(files), seglen))
     for i in range(len(files)):
-        #print(i)
+        # print(i)
         file = files[i][:-4]
         lbl = '../base/MIR-1K/vocal-nonvocalLabel/' + file + '.vocal'
         lbl = open(lbl, 'r')
         lines = lbl.readlines()
 
         lbls = np.empty(seglen)
-        for j in range(segstart, segstart+seglen):
+        for j in range(segstart, segstart + seglen):
             lbls[j - segstart] = int(lines[j])
 
         labels[i] = lbls
 
         rate, audio = load('../base/MIR-1K/Wavfile/' + file + '.wav', mono=True)
-        audios[i] = audio[segstart*mul:segstart*mul+seglen*mul]
+        audios[i] = audio[segstart * mul:segstart * mul + seglen * mul]
         rates[i] = rate
 
     a = 0
@@ -41,7 +41,7 @@ def main():
     clf = svm.SVC(kernel='poly', degree=2, cache_size=500)
     ltrain = 500
     ltest = 500
-    #X = np.ndarray([ltrain, ncep + nother])
+    # X = np.ndarray([ltrain, ncep + nother])
     y = np.empty(ltrain)
     scaler = None
     ntries = 20
@@ -52,9 +52,9 @@ def main():
         np.random.seed(0)
         inds = np.arange(0, 1000)
         for k in range(ntries):
-            print(k+1, end=' ')
+            print(k + 1, end=' ')
             sys.stdout.flush()
-            if k == ntries-1:
+            if k == ntries - 1:
                 print()
 
             np.random.shuffle(inds)
@@ -80,7 +80,7 @@ def main():
                 voice = np.median(labels[i])
 
                 if (cnt < ltrain):
-                    X[cnt] = features(audio, rate,ncep)
+                    X[cnt] = features(audio, rate, ncep)
                     y[cnt] = voice
                 if (cnt > ltrain):
                     X[cnt - ltrain] = features(audio, rate, ncep)
@@ -88,7 +88,7 @@ def main():
                 if (cnt == ltrain):
                     scaler = preprocessing.StandardScaler().fit(X)
                     clf.fit(scaler.transform(X), y)
-                    X = np.ndarray([ltest, ncep+nother])
+                    X = np.ndarray([ltest, ncep + nother])
                     y = np.empty(ltest)
                     X[0] = features(audio, rate, ncep)
                     y[0] = voice
@@ -117,5 +117,5 @@ def main():
         fn = 0
 
 
-#cp.run('main()')
+# cp.run('main()')
 main()

@@ -112,17 +112,14 @@ def matrixmax(np.ndarray[DTYPE_t, ndim=3] matrices):
     cdef int c = matrices.shape[2]
     cdef int n = matrices.shape[0]
     cdef int m = matrices.shape[1]
-    cdef int i,j,k
+    cdef int i, j, k
     cdef DTYPE_t maxh
-    cdef np.ndarray[DTYPE_t, ndim=2] values = np.zeros((n,m), dtype=DTYPE)
+    cdef np.ndarray[DTYPE_t, ndim=2] values = np.zeros((n, m), dtype=DTYPE)
     for i in range(n):
         for j in range(m):
-            maxh=matrices[i,j,0]
-            for k in range(1,c):
-                if matrices[i,j,k]>maxh:
-                    maxh=matrices[i,j,k]
-            values[i,j]=maxh
+            maxh = matrices[i, j, 0]
+            for k in range(1, c):
+                if matrices[i, j, k] > maxh:
+                    maxh = matrices[i, j, k]
+            values[i, j] = maxh
     return values
-
-
-

@@ -132,7 +132,7 @@ cdef int cperiod(np.ndarray[DTYPE_t, ndim=1] beat):
             h = argmax(b, cmaxint(i - d, 0), cminint(i + d + 1, l))
             if (h + D - d) == argmax(b, i - D, cminint(i + D + 1, l)):
                 I += b[h] - mean(b, i - D, cminint(i + D + 1, l))
-            i+=j
+            i += j
         J[j] = I / (l // j)
 
     p = cmaxint(argmax(J, 0, l // 3), minper)

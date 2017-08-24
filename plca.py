@@ -10,11 +10,11 @@ ncep = 39
 nother = 3
 
 
-def features(audio, rate,ncep=ncep):
+def features(audio, rate, ncep=ncep):
     feats = np.empty(ncep + nother)
 
     coefs = mfcc.mfcc(audio, samplerate=rate, numcep=ncep, nfilt=2 * ncep, nfft=4096, winlen=4096 / rate,
-                      winstep=4096/3 / rate)
+                      winstep=4096 / 3 / rate)
     feats[0:ncep] = np.mean(coefs, axis=0)
 
     fft = np.abs(np.fft.rfft(audio))
@@ -28,7 +28,10 @@ def features(audio, rate,ncep=ncep):
 
     return feats
 
+
 seglen = 3200
+
+
 def train():
     clf = svm.SVC(kernel='poly', degree=2, cache_size=500)
     files = os.listdir('../base/MIR-1K/Wavfile/')
@@ -39,7 +42,7 @@ def train():
     X = np.empty([l, ncep + nother])
     y = np.empty([l])
     for i in range(l):
-        #print(i)
+        # print(i)
         file = files[i][:-4]
         lbl = '../base/MIR-1K/vocal-nonvocalLabel/' + file + '.vocal'
         lbl = open(lbl, 'r')
@@ -52,7 +55,7 @@ def train():
         voice = np.median(lbls)
 
         rate, audio = load('../base/MIR-1K/Wavfile/' + file + '.wav', mono=True)
-        audio = audio[start:start + 9*seglen]
+        audio = audio[start:start + 9 * seglen]
 
         X[i] = features(audio, rate)
         y[i] = voice
@@ -101,7 +104,7 @@ def learn(S, nz, niter=100, Fmusic=None):
     Z = np.diagflat(zs)
 
     for i in range(niter):
-        #print(i)
+        # print(i)
         P = np.dot(F, np.dot(Z, T))
         R = S / P
 
@@ -115,7 +118,7 @@ def learn(S, nz, niter=100, Fmusic=None):
 
 def plca(audio, rate):
     lbl = label(audio, rate)
-    #print(lbl)
+    # print(lbl)
     mus = []
     for i in range(len(lbl)):
         if lbl[i] == 0:
@@ -124,25 +127,23 @@ def plca(audio, rate):
     wl = 2048
     ovl = 1024
     f, t, _, spectmus = magspect(mus, rate, wl, noverlap=ovl)
-    #plotspect((f,t,spectmus))
+    # plotspect((f,t,spectmus))
     nzb = 200
     nzv = 200
     Fmus, _, _ = learn(spectmus, niter=150, nz=nzb)
 
-
     f, t, cspectmix, spectmix = magspect(audio, rate, wl, noverlap=ovl)
-    #plotspect((f,t,spectmix))
+    # plotspect((f,t,spectmix))
     Fmix, Z, T = learn(spectmix, niter=150, nz=nzb + nzv, Fmusic=Fmus)
 
     Pmus = np.dot(Fmus, np.dot(Z[:nzb, :nzb], T[:nzb, :]))
     Fvoc = Fmix[:, nzb:]
     Pvoc = np.dot(Fvoc, np.dot(Z[nzb:, nzb:], T[nzb:, :]))
 
-    #cspectmus = cspectmix*Pmus/(Pmus+Pvoc)
+    # cspectmus = cspectmix*Pmus/(Pmus+Pvoc)
     cspectvoc = cspectmix * Pvoc / (Pmus + Pvoc)
 
     voice = inversestft(cspectvoc, wl, noverlap=ovl)[0:len(audio)]
     music = audio - voice
 
     return voice, music
-

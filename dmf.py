@@ -13,9 +13,9 @@ def dmf(audio, rate):
     vfh = vertfilter(specth, verbinh)
     hfh = horfilter(specth, horbinh)
 
-    mph = vfh ** 2 / (hfh ** 2 + vfh ** 2) # maska za perkusije (i glas)
+    mph = vfh ** 2 / (hfh ** 2 + vfh ** 2)  # maska za perkusije (i glas)
 
-    vocper = inversestft(cspecth * mph, winlenh, winlenh - steph) # vokali sa perkusijama
+    vocper = inversestft(cspecth * mph, winlenh, winlenh - steph)  # vokali sa perkusijama
 
     fl, tl, cspectl, spectl = magspect(vocper, rate, winlenl, winlenl - stepl)
     spectl = spectl.astype(np.float64)
@@ -33,17 +33,19 @@ def dmf(audio, rate):
     d5 = diagfilter(spectl, -1, 1, horbinl)
     d6 = diagfilter(spectl, -1, 2, horbinl)
 
-    h = horbinl//2
-    m=spectl.shape[0]
-    hfl[h:m-h] = matrixmax(np.dstack([hfl[h:m - h], d1[h:m - h], d2[h:m - h], d3[h:m - h], d4[h:m - h], d5[h:m - h], d6[h:m - h]]))
+    h = horbinl // 2
+    m = spectl.shape[0]
+    hfl[h:m - h] = matrixmax(
+        np.dstack([hfl[h:m - h], d1[h:m - h], d2[h:m - h], d3[h:m - h], d4[h:m - h], d5[h:m - h], d6[h:m - h]]))
     h = horbinl
-    hfl[h:m - h] = matrixmax(np.dstack([hfl[h:m - h], d1[h:m - h], d2[h:m - h], d3[h:m - h], d4[h:m - h], d5[h:m - h], d6[h:m - h]]))
+    hfl[h:m - h] = matrixmax(
+        np.dstack([hfl[h:m - h], d1[h:m - h], d2[h:m - h], d3[h:m - h], d4[h:m - h], d5[h:m - h], d6[h:m - h]]))
 
     mhl = hfl ** 2 / (vfl ** 2 + hfl ** 2)  # maska za glas
     '''plt.pcolormesh(mhl)
     plt.show()'''
 
-    voc = inversestft(cspectl * mhl, winlenl, winlenl - stepl)[:len(audio)] # samo vokali
-    mus = audio-voc # samo muzika
+    voc = inversestft(cspectl * mhl, winlenl, winlenl - stepl)[:len(audio)]  # samo vokali
+    mus = audio - voc  # samo muzika
 
     return voc, mus

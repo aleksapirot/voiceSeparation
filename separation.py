@@ -51,7 +51,6 @@ from scipy.signal import fftconvolve
 import itertools
 import warnings
 
-
 # The maximum allowable number of sources (prevents insane computational load)
 MAX_SOURCES = 100
 
@@ -106,7 +105,7 @@ def validate(reference_sources, estimated_sources):
                          'source will result in an underdetermined system.')
 
     if (estimated_sources.shape[0] > MAX_SOURCES or
-            reference_sources.shape[0] > MAX_SOURCES):
+                reference_sources.shape[0] > MAX_SOURCES):
         raise ValueError('The supplied matrices should be of shape (nsrc,'
                          ' nsampl) but reference_sources.shape[0] = {} and '
                          'estimated_sources.shape[0] = {} which is greater '
@@ -272,7 +271,7 @@ def _project(reference_sources, estimated_source, flen):
     reference_sources = np.hstack((reference_sources,
                                    np.zeros((nsrc, flen - 1))))
     estimated_source = np.hstack((estimated_source, np.zeros(flen - 1)))
-    n_fft = int(2**np.ceil(np.log2(nsampl + flen - 1.)))
+    n_fft = int(2 ** np.ceil(np.log2(nsampl + flen - 1.)))
     sf = np.fft.rfft(reference_sources, n=n_fft, axis=1)
     sef = np.fft.rfft(estimated_source, n=n_fft)
     # inner products between delayed versions of reference_sources
@@ -283,15 +282,15 @@ def _project(reference_sources, estimated_source, flen):
             ssf = np.real(np.fft.irfft(ssf))
             ss = toeplitz(np.hstack((ssf[0], ssf[-1:-flen:-1])),
                           r=ssf[:flen])
-            G[i * flen: (i+1) * flen, j * flen: (j+1) * flen] = ss
-            G[j * flen: (j+1) * flen, i * flen: (i+1) * flen] = ss.T
+            G[i * flen: (i + 1) * flen, j * flen: (j + 1) * flen] = ss
+            G[j * flen: (j + 1) * flen, i * flen: (i + 1) * flen] = ss.T
     # inner products between estimated_source and delayed versions of
     # reference_sources
     D = np.zeros(nsrc * flen)
     for i in range(nsrc):
         ssef = sf[i] * np.conj(sef)
         ssef = np.real(np.fft.irfft(ssef))
-        D[i * flen: (i+1) * flen] = np.hstack((ssef[0], ssef[-1:-flen:-1]))
+        D[i * flen: (i + 1) * flen] = np.hstack((ssef[0], ssef[-1:-flen:-1]))
 
     # Computing projection
     # Distortion filters
@@ -312,9 +311,9 @@ def _bss_source_crit(s_true, e_spat, e_interf, e_artif):
     """
     # energy ratios
     s_filt = s_true + e_spat
-    sdr = _safe_db(np.sum(s_filt**2), np.sum((e_interf + e_artif)**2))
-    sir = _safe_db(np.sum(s_filt**2), np.sum(e_interf**2))
-    sar = _safe_db(np.sum((s_filt + e_interf)**2), np.sum(e_artif**2))
+    sdr = _safe_db(np.sum(s_filt ** 2), np.sum((e_interf + e_artif) ** 2))
+    sir = _safe_db(np.sum(s_filt ** 2), np.sum(e_interf ** 2))
+    sar = _safe_db(np.sum((s_filt + e_interf) ** 2), np.sum(e_artif ** 2))
     return (sdr, sir, sar)
 
 
