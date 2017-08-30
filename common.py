@@ -7,7 +7,21 @@ import separation
 
 # ucitava audio fajl
 def load(path, mono=False):
-    (rate, audio) = wf.read(path)
+    if path[-3:] == 'wav':
+        (rate, audio) = wf.read(path)
+    elif path[-3:] == 'mp3':
+        import subprocess as sp
+        rate = 44100
+        command = ["ffmpeg",
+                '-i', path,
+                '-f', 'f32le',
+                '-acodec', 'pcm_f32le',
+                '-ar', str(rate),
+                '-ac', '1',
+                '-']
+        pipe = sp.Popen(command, stdout=sp.PIPE, stderr=sp.DEVNULL, bufsize=10 ** 8)
+        audio = np.frombuffer(pipe.communicate()[0], dtype=np.float32)
+
     if (audio.ndim == 2):
         audiol = audio[:, 0]
         audior = audio[:, 1]
@@ -21,9 +35,9 @@ def load(path, mono=False):
 
 
 # cuva audio fajl
-def save(audio, rate, path):
+def save(audio, rate, path, dtype=np.int16):
     # print(np.max(audio), np.min(audio))
-    wf.write(open(path, 'wb+'), rate, audio.astype(np.int16))  # audio/np.max(np.abs(audio)))
+    wf.write(open(path, 'wb+'), rate, audio.astype((dtype)))  # audio/np.max(np.abs(audio)))
 
 
 # spectrogram
