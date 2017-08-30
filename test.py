@@ -1,118 +1,97 @@
-from adaptive_repet import *
-from dmf import *
-from plca import *
 import os
+import time
+import argparse
+from pathlib import Path
+
+from adaptive_repet import adtrepet, repet, repeth
+from dmf import dmf, horver
+from plca import plca
+from common import load, evaluate, np
 
 
-def test():
-    dir = '../base/MIR-1K/Wavfile/'
-    results = {}
-    i = 1
-    count = 5  # len(os.listdir(dir))
-    algorithm = 'repet'
-    resfolder = '2'  # jer nekad cuvamo u results nekad u results2
-    metrics = '-Test'  # isto menjamo i ime fajla
-    funcs = {'repet': repet, 'repet-h': repeth, 'adaptive-repet': adtrepet, 'repet-sim': None, 'horver': horver,
-             'dmf': dmf,
-             'plca': plca}
+def test(algorithm='R', resfolder='', longer=False):
+    algorithm = algorithm.upper()
+    dir = '../base/MIR-1K/Wavfile'
+    metrics = ''  # isto menjamo i ime fajla
+
+    if longer:
+        dir = '../base/MIR-1K/UndividedWavfile'
+        resfolder = '-long' + resfolder
+
+    count = len(os.listdir(dir))
+    results = np.empty((count, 6))
+    songs = np.sort(os.listdir(dir))[0:count]
+    i = 0
+    funcs = {'R': repet, 'RH': repeth, 'R_ADT': adtrepet, 'R_SIM': None,
+             'HV': horver, 'DMF': dmf, 'PLCA': plca}
+
     # train()
-    for name in os.listdir(dir)[0:count]:
-        print('{}/{}'.format(i, count))
-        i += 1
+    savedir = '../results{}/{}'.format(resfolder, algorithm)
+    Path(savedir).mkdir(parents=True, exist_ok=True)
+    for i in range(count):
+        print('{}/{}'.format(i+1, count))
 
-        name = name[:-4]
-        rate, audiol, audior = load('{}{}.wav'.format(dir, name))
+        song = songs[i] = songs[i][:-4]
+        rate, audiol, audior = load('{}/{}.wav'.format(dir, song))
         audio = audiol // 2 + audior // 2
 
-        voice, music = funcs[algorithm](audio, rate)
-        '''voice1, music1 = horver(audio, rate)
-        voice2, music2 = repeth(voice1, rate)
-        voice3, music3 = repeth(music1, rate)
-        voice = voice2 + voice3
-        music = music2 + music3  #'''
-        # voice,music=plca(audio, rate)
+        if '-' in algorithm:
+            algs = algorithm.split('-')
+            voice1, music1 = funcs[algs[0]](audio, rate)
+            voice, _ = funcs[algs[1]](voice1, rate)
+            _, music = funcs[algs[1]](music1, rate)
+        else:
+            voice, music = funcs[algorithm](audio, rate)
 
         '''if i < 10:
-            save(music, rate, '../results{}/{}/{}-music.wav'.format(resfolder, algorithm, name))
-            save(voice, rate, '../results{}/{}/{}-voice.wav'.format(resfolder, algorithm, name))'''
+            save(music, rate, '{}/{}-music.wav'.format(savedir, name))
+            save(voice, rate, '{}/{}-voice.wav'.format(savedir, name))'''
 
-        # save(music, rate, '../results{}/{}-music.wav'.format(resfolder, metrics))
-        # save(voice, rate, '../results{}/{}-voice.wav'.format(resfolder, metrics))
-        print('gotov algoritam')
+        # print('gotov algoritam')
+
         sdr, sir, sar = evaluate(audior, audiol, voice, music)
-        print(sdr, sir, sar)
-        results[name] = {'SDR': sdr, 'SIR': sir, 'SAR': sar}
+        print("\033[1A\033[J", end='') # brise prosli red
+        print('SDR: {0[0]:05.2f}(V)  {0[1]:05.2f}(M)  SIR: {1[0]:05.2f}(V)  {1[1]:05.2f}(M)  SAR: {2[0]:05.2f}(V)  {2[1]:05.2f}(M)'.format(sdr, sir, sar))
+        results[i] = np.concatenate([sdr, sir, sar])
 
-    avgsdr = np.zeros(2)
-    avgsir = np.zeros(2)
-    avgsar = np.zeros(2)
-    maxsdrv = -100
-    maxsdrm = -100
-    maxsirv = -100
-    maxsirm = -100
-    maxsarv = -100
-    maxsarm = -100
-    minsdrv = 100
-    minsdrm = 100
-    minsirv = 100
-    minsirm = 100
-    minsarv = 100
-    minsarm = 100
-    file = open('../results{}/{}/metrics{}.txt'.format(resfolder, algorithm, metrics), 'w+')
 
-    # TODO np.min np.max np.avg
-    for song in results:
-        sdr = results[song]['SDR']
-        sir = results[song]['SIR']
-        sar = results[song]['SAR']
+    mean = '\nMean:\nSDR: {0[0]:05.2f}(V)  {0[1]:05.2f}(M) \nSIR: {0[2]:05.2f}(V)  {0[3]:05.2f}(M) \nSAR: {0[4]:05.2f}(V)  {0[5]:05.2f}(M)'.format(np.mean(results, axis=0))
+    median = ' \nMedian:\nSDR: {0[0]:05.2f}(V)  {0[1]:05.2f}(M) \nSIR: {0[2]:05.2f}(V)  {0[3]:05.2f}(M) \nSAR: {0[4]:05.2f}(V)  {0[5]:05.2f}(M)'.format(np.median(results, axis=0))
+    maximum = ('\nMaximum:\nSDR: {0[0]:05.2f}[{1[0]:03}](V)  {0[1]:05.2f}[{1[1]:03}](M) \nSIR: {0[2]:05.2f}[{1[2]:03}](V)  {0[3]:05.2f}[{1[3]:03}](M)'
+          '\nSAR: {0[4]:05.2f}[{1[4]:03}](V)  {0[5]:05.2f}[{1[5]:03}](M)').format(np.max(results, axis=0), np.argmax(results, axis=0)+1)
+    minimum = ('\nMin:\nSDR: {0[0]:05.2f}[{1[0]:03}](V)  {0[1]:05.2f}[{1[1]:03}](M) \nSIR: {0[2]:05.2f}[{1[2]:03}](V)  {0[3]:05.2f}[{1[3]:03}](M)'
+          '\nSAR: {0[4]:05.2f}[{1[4]:03}](V)  {0[5]:05.2f}[{1[5]:03}](M)').format(np.min(results, axis=0), np.argmin(results, axis=0)+1)
 
-        if sdr[0] > maxsdrv:
-            maxsdrv = sdr[0]
-        if sdr[1] > maxsdrm:
-            maxsdrm = sdr[1]
-        if sir[0] > maxsirv:
-            maxsirv = sir[0]
-        if sir[1] > maxsirm:
-            maxsirm = sir[1]
-        if sar[0] > maxsarv:
-            maxsarv = sar[0]
-        if sar[1] > maxsarm:
-            maxsarm = sar[1]
+    print(mean)
+    print(median)
+    print(maximum)
+    print(minimum)
 
-        if sdr[0] < minsdrv:
-            minsdrv = sdr[0]
-        if sdr[1] < minsdrm:
-            minsdrm = sdr[1]
-        if sir[0] < minsirv:
-            minsirv = sir[0]
-        if sir[1] < minsirm:
-            minsirm = sir[1]
-        if sar[0] < minsarv:
-            minsarv = sar[0]
-        if sar[1] < minsarm:
-            minsarm = sar[1]
+    file = open('{}/metrics{}.txt'.format(savedir, metrics), 'w+')
 
-        print(
-            '{0:20}: SDR [{1[0]:05.2f}  {1[1]:05.2f}]  SIR [{2[0]:05.2f}  {2[1]:05.2f}]  SAR [{3[0]:05.2f}  {3[1]:05.2f}]'.format(
-                song, sdr, sir, sar), file=file)
+    for i in range(count):
+        print('{0:20}: SDR [{1[0]:05.2f}  {1[1]:05.2f}]  SIR [{1[2]:05.2f}  {1[3]:05.2f}]  SAR [{1[4]:05.2f}  {1[5]:05.2f}]'
+              .format(songs[i], results[i]), file=file)
 
-        avgsdr += sdr
-        avgsir += sir
-        avgsar += sar
-    avgsdr /= len(results)
-    avgsir /= len(results)
-    avgsar /= len(results)
+    print(mean, file=file)
+    print(median, file=file)
+    print(maximum, file=file)
+    print(minimum, file=file)
 
-    # print(results, file=file)
-    print(
-        '\nAverage:\nSDR [{0[0]:05.2f}  {0[1]:05.2f}]\nSIR [{1[0]:05.2f}  {1[1]:05.2f}]\nSAR [{2[0]:05.2f}  {2[1]:05.2f}]'
-        .format(avgsdr, avgsir, avgsar), file=file)
-
-    print('\nMaximums:\nSDR [{0:05.2f}  {1:05.2f}]\nSIR [{2:05.2f}  {3:05.2f}]\nSAR [{4:05.2f}  {5:05.2f}]'.format(
-        maxsdrv, maxsdrm, maxsirv, maxsirm, maxsarv, maxsarm), file=file)
-
-    print('\nMinimums:\nSDR [{0:05.2f}  {1:05.2f}]\nSIR [{2:05.2f}  {3:05.2f}]\nSAR [{4:05.2f}  {5:05.2f}]'.format(
-        minsdrv, minsdrm, minsirv, minsirm, minsarv, minsarm), file=file)
     file.close()
 
-# test()
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('alg') # algoritam
+    parser.add_argument('-r', dest='res', default='') # resfolder
+    parser.add_argument('-l', '--long', dest='long', action='store_true') #ako ima -l ili --long radi na duzim klipovima (UndividedWavfile)
+    args = parser.parse_args()
+
+    now = time.localtime()
+    print('Testiranje počelo u {0.tm_hour:02}:{0.tm_min:02}:{0.tm_sec:02}'.format(now))
+
+    test(args.alg, args.res, args.long)
+
+    now = time.localtime()
+    print('Testiranje gotovo u {0.tm_hour:02}:{0.tm_min:02}:{0.tm_sec:02}'.format(now))
