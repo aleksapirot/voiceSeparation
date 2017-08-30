@@ -1,4 +1,4 @@
-from plca import *
+from plca import plca, features, load, ncep, nother, np, rand, svm, preprocessing
 import os
 import sys
 import cProfile as cp
@@ -9,9 +9,7 @@ def main():
     segstart = 10
     mul = 320
 
-    files = os.listdir('../base/MIR-1K/Wavfile')
-    # np.random.seed(0)
-    # np.random.shuffle(files)
+    files = np.sort(os.listdir('../base/MIR-1K/Wavfile'))
     rates = np.empty(len(files))
     audios = np.empty((len(files), seglen * mul))
     labels = np.empty((len(files), seglen))
@@ -31,6 +29,7 @@ def main():
         rate, audio = load('../base/MIR-1K/Wavfile/' + file + '.wav', mono=True)
         audios[i] = audio[segstart * mul:segstart * mul + seglen * mul]
         rates[i] = rate
+
 
     a = 0
     tp = 0
