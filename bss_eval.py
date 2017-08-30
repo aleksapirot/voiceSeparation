@@ -25,17 +25,6 @@ Metrics
   to the reference sources and measure the distortion and artifacts present in
   the estimated sources as well as the interference between them.
 
-* :func:`mir_eval.separation.bss_eval_sources_framewise`: Computes the
-  bss_eval_sources metrics on a frame-by-frame basis.
-
-* :func:`mir_eval.separation.bss_eval_images`: Computes the bss_eval_images
-  metrics from bss_eval, which includes the metrics in
-  :func:`mir_eval.separation.bss_eval_sources` plus the image to spatial
-  distortion ratio.
-
-* :func:`mir_eval.separation.bss_eval_images_framewise`: Computes the
-  bss_eval_images metrics on a frame-by-frame basis.
-
 References
 ----------
   .. [#vincent2006performance] Emmanuel Vincent, Rémi Gribonval, and Cédric

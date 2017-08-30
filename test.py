@@ -3,14 +3,11 @@ import time
 import argparse
 from pathlib import Path
 
-from adaptive_repet import adtrepet, repet, repeth
-from dmf import dmf, horver
-from plca import plca
 from common import load, evaluate, np
+from separate import apply
 
 
 def test(algorithm='R', resfolder='', longer=False):
-    algorithm = algorithm.upper()
     dir = '../base/MIR-1K/Wavfile'
     metrics = ''  # isto menjamo i ime fajla
 
@@ -22,8 +19,6 @@ def test(algorithm='R', resfolder='', longer=False):
     results = np.empty((count, 6))
     songs = np.sort(os.listdir(dir))[0:count]
     i = 0
-    funcs = {'R': repet, 'RH': repeth, 'R_ADT': adtrepet, 'R_SIM': None,
-             'HV': horver, 'DMF': dmf, 'PLCA': plca}
 
     # train()
     savedir = '../results{}/{}'.format(resfolder, algorithm)
@@ -35,13 +30,7 @@ def test(algorithm='R', resfolder='', longer=False):
         rate, audiol, audior = load('{}/{}.wav'.format(dir, song))
         audio = audiol // 2 + audior // 2
 
-        if '-' in algorithm:
-            algs = algorithm.split('-')
-            voice1, music1 = funcs[algs[0]](audio, rate)
-            voice, _ = funcs[algs[1]](voice1, rate)
-            _, music = funcs[algs[1]](music1, rate)
-        else:
-            voice, music = funcs[algorithm](audio, rate)
+        voice, music = apply(algorithm, audio, rate)
 
         '''if i < 10:
             save(music, rate, '{}/{}-music.wav'.format(savedir, name))

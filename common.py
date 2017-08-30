@@ -2,7 +2,8 @@ import scipy.io.wavfile as wf
 import scipy.signal as signal
 import matplotlib.pyplot as plt
 import numpy as np
-import separation
+import subprocess as sp
+from bss_eval import bss_eval_sources
 
 
 # ucitava audio fajl
@@ -10,13 +11,11 @@ def load(path, mono=False):
     if path[-3:] == 'wav':
         (rate, audio) = wf.read(path)
     elif path[-3:] == 'mp3':
-        import subprocess as sp
-        rate = 44100
         command = ["ffmpeg",
                 '-i', path,
                 '-f', 'f32le',
                 '-acodec', 'pcm_f32le',
-                '-ar', str(rate),
+                '-ar', '44100',
                 '-ac', '1',
                 '-']
         pipe = sp.Popen(command, stdout=sp.PIPE, stderr=sp.DEVNULL, bufsize=10 ** 8)
@@ -26,8 +25,9 @@ def load(path, mono=False):
         audiol = audio[:, 0]
         audior = audio[:, 1]
         if mono:
+            dtype = audio.dtype
             audio = audiol / 2 + audior / 2
-            return (rate, np.trim_zeros(audio))
+            return (rate, np.trim_zeros(audio.astype(dtype)))
         else:
             return (rate, audiol, audior)
     else:
@@ -35,9 +35,27 @@ def load(path, mono=False):
 
 
 # cuva audio fajl
-def save(audio, rate, path, dtype=np.int16):
+def save(audio, rate, path, mp3=True):
     # print(np.max(audio), np.min(audio))
-    wf.write(open(path, 'wb+'), rate, audio.astype((dtype)))  # audio/np.max(np.abs(audio)))
+    if mp3:
+        typetoformat = {np.int16:'s16le', np.int32:'s32le', np.float32:'f32le', np.float64:'f64le'}
+        f = typetoformat[audio.dtype.type]
+        command = ['ffmpeg',
+                   '-y', # (optional) means overwrite the output file if it already exists.
+                   "-f", f, # input format
+                   "-acodec", "pcm_"+ f, # means raw  input
+                   '-ar', str(rate),
+                   '-ac','1', # 1 channel
+                   '-i', '-', # means that the input will arrive from the pipe
+                   '-vn', # means "don't expect any video input"
+                   '-codec:a', "libmp3lame", # output audio codec
+                   '-q:a', '3', # quality
+                   path]
+        pipe = sp.Popen(command, stdin=sp.PIPE, stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+        pipe.stdin.write(audio.tobytes())
+        pipe.stdin.close()
+    else:
+        wf.write(open(path, 'wb+'), rate, audio)
 
 
 # spectrogram
@@ -71,4 +89,4 @@ def plotspect(stft, maxcoef=0.8):
 
 # vraca SDR, SIR i SAR
 def evaluate(origv, origm, algv, algm):
-    return separation.bss_eval_sources(np.vstack((origv, origm)), np.vstack((algv, algm)), False)[0:3]
+    return bss_eval_sources(np.vstack((origv, origm)), np.vstack((algv, algm)), False)[0:3]
