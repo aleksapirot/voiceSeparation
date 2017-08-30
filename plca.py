@@ -35,7 +35,7 @@ seglen = 3200
 def train():
     clf = svm.SVC(kernel='poly', degree=2, cache_size=500)
     files = os.listdir('../base/MIR-1K/Wavfile/')
-    np.random.shuffle(files)
+    rand.shuffle(files)
     l = 500
     start = 10 * seglen
 
