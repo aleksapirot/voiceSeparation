@@ -11,11 +11,12 @@ def load(path, mono=False):
     if path[-3:] == 'wav':
         (rate, audio) = wf.read(path)
     elif path[-3:] == 'mp3':
+        rate = 44100
         command = ["ffmpeg",
                 '-i', path,
                 '-f', 'f32le',
                 '-acodec', 'pcm_f32le',
-                '-ar', '44100',
+                '-ar', str(rate),
                 '-ac', '1',
                 '-']
         pipe = sp.Popen(command, stdout=sp.PIPE, stderr=sp.DEVNULL, bufsize=10 ** 8)
@@ -36,7 +37,6 @@ def load(path, mono=False):
 
 # cuva audio fajl
 def save(audio, rate, path, mp3=True):
-    # print(np.max(audio), np.min(audio))
     if mp3:
         typetoformat = {np.int16:'s16le', np.int32:'s32le', np.float32:'f32le', np.float64:'f64le'}
         f = typetoformat[audio.dtype.type]
@@ -51,7 +51,7 @@ def save(audio, rate, path, mp3=True):
                    '-codec:a', "libmp3lame", # output audio codec
                    '-q:a', '3', # quality
                    path]
-        pipe = sp.Popen(command, stdin=sp.PIPE, stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+        pipe = sp.Popen(command, stdin=sp.PIPE, stdout=sp.DEVNULL, stderr=sp.STDOUT)
         pipe.stdin.write(audio.tobytes())
         pipe.stdin.close()
     else:

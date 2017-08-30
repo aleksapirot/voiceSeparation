@@ -27,6 +27,8 @@ def apply(algorithm, audio, rate):
 
 
 if __name__ == '__main__':
+    print('Počelo u {0.tm_hour:02}:{0.tm_min:02}:{0.tm_sec:02}'.format(time.localtime()))
+
     parser = argparse.ArgumentParser()
     parser.add_argument('alg') # algoritam
     parser.add_argument('input') # input file
@@ -34,20 +36,20 @@ if __name__ == '__main__':
     parser.add_argument('--wav', action='store_true')
     args = parser.parse_args()
 
-    now = time.localtime()
-    print('Počelo u {0.tm_hour:02}:{0.tm_min:02}:{0.tm_sec:02}'.format(now))
-
     rate, audio = load(args.input, True)
+
+    start = time.time()
     voice, music = apply(args.alg, audio, rate)
+    l = time.time() - start
+    print('{:.1f}s za {:.1f}s'.format(l, len(audio)/rate))
+
     out = args.o
     if out is None:
-        out = '..'
-    else:
-        Path(out).mkdir(parents=True, exist_ok=True)
+        out = '../outputs'
+    Path(out).mkdir(parents=True, exist_ok=True)
     name = Path(args.input).stem
     ext = 'wav' if args.wav else 'mp3'
     save(voice, rate, "{}/{}-{}-voice.{}".format(out, name, args.alg, ext), not args.wav)
     save(music, rate, "{}/{}-{}-music.{}".format(out, name, args.alg, ext), not args.wav)
 
-    now = time.localtime()
-    print('Gotovo u {0.tm_hour:02}:{0.tm_min:02}:{0.tm_sec:02}'.format(now))
+    print('Gotovo u {0.tm_hour:02}:{0.tm_min:02}:{0.tm_sec:02}'.format(time.localtime()))
