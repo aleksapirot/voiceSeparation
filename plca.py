@@ -48,11 +48,13 @@ def train():
         lbl = open(lbl, 'r')
         lines = lbl.readlines()
 
-        lbls = np.empty(9)
+        #treba da se podeli na x segmenata duzine x*y(y je shift segmenata)
+        frames = 9
+        lbls = np.empty(frames)
         for j in range(10, 19):
             lbls[j - 10] = int(lines[j])
 
-        voice = np.median(lbls)
+        voice = 1 if np.sum(lbls) > frames/2 else 0
 
         rate, audio = load('../base/MIR-1K/Wavfile/' + file + '.wav', mono=True)
         audio = audio[start:start + 9 * seglen]
