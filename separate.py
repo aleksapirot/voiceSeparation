@@ -7,6 +7,7 @@ from adaptive_repet import adtrepet, repet, repeth
 from dmf import dmf, horver
 from plca import plca, train
 from common import load, save
+from svmtest import svmtest
 
 
 funcs = {'R': repet, 'RH': repeth, 'R_ADT': adtrepet, 'R_SIM': None,
@@ -34,9 +35,11 @@ if __name__ == '__main__':
     parser.add_argument('output', nargs='?') # output folder (default je "../outputs")
     parser.add_argument('--wav', action='store_true')
     parser.add_argument('--cp', action='store_true')
+    parser.add_argument('--long', action='store_true')
     args = parser.parse_args()
 
-    if args.alg.lower() == 'train':
+    alg = args.alg.lower()
+    if alg == 'train':
         if args.cp:
             cp.run('train()')
         else:
@@ -44,6 +47,14 @@ if __name__ == '__main__':
             train()
             l = time.time() - start
             print('{:.1f}s za treniranje'.format(l))
+    elif alg == 'svm':
+        if args.cp:
+            cp.run('svmtest()')
+        else:
+            start = time.time()
+            svmtest()
+            l = time.time() - start
+            print('{:.1f}s za SVM test'.format(l))
     else:
         rate, audio = load(args.input, True)
         if args.cp:

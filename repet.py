@@ -48,6 +48,7 @@ def repspect(spect, seg):
 
 # racuna masku
 def mask(spect, repspect, rate, highpass):
+    spect = spect.clip(min=np.finfo(spect.dtype.type).eps)
     msk = repspect / spect
     if highpass:
         count = 2 * 100 * spect.shape[0] // rate
