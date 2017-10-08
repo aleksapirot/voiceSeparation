@@ -18,6 +18,7 @@ def features(audio, rate, ncp=ncep):
 
     fft = np.abs(np.fft.rfft(audio))
     pwr = fft ** 2
+    pwr.clip(min=np.finfo(pwr.dtype.type).eps)
     feats[ncp] = ms.gmean(pwr) / np.mean(pwr)
 
     freq = np.fft.rfftfreq(len(audio), 1 / rate)
