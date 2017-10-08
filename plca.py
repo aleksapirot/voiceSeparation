@@ -9,69 +9,71 @@ import numpy.random as rand
 ncep = 39
 nother = 3
 
+def features(audio, rate, ncp=ncep):
+    feats = np.empty(ncp + nother)
 
-def features(audio, rate, ncep=ncep):
-    feats = np.empty(ncep + nother)
-
-    coefs = mfcc.mfcc(audio, samplerate=rate, numcep=ncep, nfilt=2 * ncep, nfft=4096, winlen=4096 / rate,
+    coefs = mfcc.mfcc(audio, samplerate=rate, numcep=ncp, nfilt=2 * ncp, nfft=4096, winlen=4096 / rate,
                       winstep=4096 / 3 / rate)
-    feats[0:ncep] = np.mean(coefs, axis=0)
+    feats[0:ncp] = np.mean(coefs, axis=0)
 
     fft = np.abs(np.fft.rfft(audio))
     pwr = fft ** 2
-    feats[ncep] = ms.gmean(pwr) / np.mean(pwr)
+    feats[ncp] = ms.gmean(pwr) / np.mean(pwr)
 
     freq = np.fft.rfftfreq(len(audio), 1 / rate)
-    feats[ncep + 1] = np.sum(fft * freq) / np.sum(fft)
+    feats[ncp + 1] = np.sum(fft * freq) / np.sum(fft)
 
-    feats[ncep + 2] = np.sqrt(np.mean(np.square(audio.astype(np.int32))))
+    feats[ncp + 2] = np.sqrt(np.mean(np.square(audio.astype(np.float64))))
 
     return feats
 
 
-seglen = 3200
+# fajl sa labelama za glas ima segmente duzine 20ms(seglen), posto je to dosta krakto vreme koristimo zajedno segnum segmenata (duzine biglen)
+segnum = 20
+seglen = (20*16000)//1000
+biglen = segnum*seglen
 
-
-def train():
+def train(long=False):
     clf = svm.SVC(kernel='poly', degree=2, cache_size=500)
     files = os.listdir('../base/MIR-1K/Wavfile/')
+    rand.seed(0)
     rand.shuffle(files)
-    l = 500
-    start = 10 * seglen
+    l = len(files)//2
 
-    X = np.empty([l, ncep + nother])
-    y = np.empty([l])
+    X = []
+    y = []
     for i in range(l):
         # print(i)
         file = files[i][:-4]
         lbl = '../base/MIR-1K/vocal-nonvocalLabel/' + file + '.vocal'
         lbl = open(lbl, 'r')
         lines = lbl.readlines()
-
-        lbls = np.empty(9)
-        for j in range(10, 19):
-            lbls[j - 10] = int(lines[j])
-
-        voice = np.median(lbls)
-
         rate, audio = load('../base/MIR-1K/Wavfile/' + file + '.wav', mono=True)
-        audio = audio[start:start + 9 * seglen]
 
-        X[i] = features(audio, rate)
-        y[i] = voice
+        for j in range(len(lines)//segnum):
+            start = segnum*j
+
+            sum = 0
+            for k in range(segnum):
+                sum += int(lines[start+k])
+
+            voice = 1 if sum > segnum/2 else 0
+
+            audio1 = audio[start*seglen:(start + segnum) * seglen]
+
+            X.append(features(audio1, rate, ncep))
+            y.append(voice)
 
     scaler = preprocessing.StandardScaler().fit(X)
     clf.fit(scaler.transform(X), y)
-    joblib.dump(clf, 'clf.pkl')
-    joblib.dump(scaler, 'scl.pkl')
+    joblib.dump([clf, scaler], 'plca.pkl')
 
 
 def label(audio, rate):
-    clf = joblib.load('clf.pkl')
-    scaler = joblib.load('scl.pkl')
-    X = np.zeros([len(audio) // seglen, ncep + nother])
-    for i in range(len(audio) // seglen):
-        X[i] = features(audio[i * seglen:(i + 1) * seglen], rate)
+    clf, scaler = joblib.load('plca.pkl')[:2]
+    X = np.zeros([len(audio) // biglen, ncep + nother])
+    for i in range(len(audio) // biglen):
+        X[i] = features(audio[i * biglen:(i + 1) * biglen], rate)
 
     return clf.predict(scaler.transform(X))
 
@@ -122,7 +124,7 @@ def plca(audio, rate):
     mus = []
     for i in range(len(lbl)):
         if lbl[i] == 0:
-            mus.extend(audio[i * seglen:(i + 1) * seglen])
+            mus.extend(audio[i * biglen:(i + 1) * biglen])
 
     wl = 2048
     ovl = 1024

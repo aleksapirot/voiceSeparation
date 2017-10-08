@@ -4,109 +4,102 @@ import sys
 import cProfile as cp
 
 
-def main():
-    seglen = 9
-    segstart = 10
-    mul = 320
-
+def svmtest(long=False):
     files = np.sort(os.listdir('../base/MIR-1K/Wavfile'))
-    rates = np.empty(len(files))
-    audios = np.empty((len(files), seglen * mul))
-    labels = np.empty((len(files), seglen))
-    for i in range(len(files)):
-        # print(i)
+    l = len(files)
+
+    segnum = 10
+    seglen = (20*16000)//1000
+    ntries = 10
+    ltrain = 200
+    ltest = 400
+
+    audios = []
+    rates = np.empty(l)
+    voices = []
+    segcounts = np.empty(l, dtype=int)
+    for i in range(l):
         file = files[i][:-4]
+        rates[i], audio = load('../base/MIR-1K/Wavfile/' + file + '.wav', mono=True)
         lbl = '../base/MIR-1K/vocal-nonvocalLabel/' + file + '.vocal'
-        lbl = open(lbl, 'r')
-        lines = lbl.readlines()
+        lines = open(lbl, 'r').readlines()
 
-        lbls = np.empty(seglen)
-        for j in range(segstart, segstart + seglen):
-            lbls[j - segstart] = int(lines[j])
+        voices1 = []
+        audios1 = []
+        segcount = len(lines)//segnum
+        segcounts[i] = segcount
+        for j in range(segcount):
+            start = segnum*j
 
-        labels[i] = lbls
+            audios1.append(audio[start*seglen:(start + segnum) * seglen])
 
-        rate, audio = load('../base/MIR-1K/Wavfile/' + file + '.wav', mono=True)
-        audios[i] = audio[segstart * mul:segstart * mul + seglen * mul]
-        rates[i] = rate
+            sum = 0
+            for k in range(segnum):
+                sum += int(lines[start+k])
+            voices1.append(1 if sum > segnum/2 else 0)
 
-
-    a = 0
-    tp = 0
-    fp = 0
-    tn = 0
-    fn = 0
+        audios.append(audios1)
+        voices.append(voices1)
 
     clf = svm.SVC(kernel='poly', degree=2, cache_size=500)
-    ltrain = 500
-    ltest = 500
-    # X = np.ndarray([ltrain, ncep + nother])
-    y = np.empty(ltrain)
     scaler = None
-    ntries = 20
-    for ncep in range(1, 100):
-        X = np.ndarray([ltrain, ncep + nother])
-        print(ncep, end='')
-        print(':')
+    for ncep in range(30, 40):
+        print('{}:'.format(ncep))
+
+        tp = 0; fp = 0; tn = 0; fn = 0
         np.random.seed(0)
-        inds = np.arange(0, 1000)
+        inds = np.arange(l)
+
+        ftrs = []
+        for i in range(l):
+            ftrs1 = []
+            for j in range(segcounts[i]):
+                ftrs1.append(features(audios[i][j], rates[i], ncep))
+            ftrs.append(ftrs1)
+
         for k in range(ntries):
             print(k + 1, end=' ')
             sys.stdout.flush()
             if k == ntries - 1:
                 print()
 
+            X = []
+            y = []
+
             np.random.shuffle(inds)
-            for i in range(len(files)):
-                cnt = i
-                i = inds[i]
-
-                '''file = files[i][:-4]
-                lbl = '../base/MIR-1K/vocal-nonvocalLabel/' + file + '.vocal'
-                lbl = open(lbl, 'r')
-                lines = lbl.readlines()
-
-                lbls = np.empty(9)
-                for j in range(10, 19):
-                    lbls[j - 10] = int(lines[j])
-
-                voice = np.median(lbls)
-
-                rate, audio = load('../base/MIR-1K/Wavfile/' + file + '.wav', mono=True)
-                audio = audio[10 * 320:19 * 320]'''
-                rate = rates[i]
-                audio = audios[i]
-                voice = np.median(labels[i])
-
-                if (cnt < ltrain):
-                    X[cnt] = features(audio, rate, ncep)
-                    y[cnt] = voice
-                if (cnt > ltrain):
-                    X[cnt - ltrain] = features(audio, rate, ncep)
-                    y[cnt - ltrain] = voice
-                if (cnt == ltrain):
+            for i in range(ltrain + ltest):
+                if (i == ltrain):
                     scaler = preprocessing.StandardScaler().fit(X)
                     clf.fit(scaler.transform(X), y)
-                    X = np.ndarray([ltest, ncep + nother])
-                    y = np.empty(ltest)
-                    X[0] = features(audio, rate, ncep)
-                    y[0] = voice
+                    X = []
+                    y = []
+
+                i = inds[i]
+                for j in range(segcounts[i]):
+                    X.append(ftrs[i][j])
+                    y.append(voices[i][j])
 
             predict = clf.predict(scaler.transform(X))
-            for i in range(ltest):
-                if y[i]:
-                    if predict[i]:
-                        tp += 1
+            a = 0
+            for i in range(ltrain, ltrain+ltest):
+                i = inds[i]
+                for j in range(segcounts[i]):
+                    if voices[i][j]:
+                        if predict[a]:
+                            tp += 1
+                        else:
+                            fn += 1
                     else:
-                        fp += 1
-                else:
-                    if predict[i]:
-                        fn += 1
-                    else:
-                        tn += 1
+                        if predict[a]:
+                            fp += 1
+                        else:
+                            tn += 1
+                    a += 1
 
         print(tp, fp, tn, fn)
         perc = 100 * tn / (tn + fn)
+        print('{:.2f}%'.format(perc))
+        perc = 100 * tn / (tn + fp)
         print('{:.2f}%'.format(perc))
         print('\n')
 
@@ -114,7 +107,3 @@ def main():
         fp = 0
         tn = 0
         fn = 0
-
-
-# cp.run('main()')
-main()
