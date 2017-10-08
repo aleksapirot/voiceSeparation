@@ -18,6 +18,9 @@ def svmtest(long=False):
     rates = np.empty(l)
     voices = []
     segcounts = np.empty(l, dtype=int)
+
+    # segnum segmenata (svaki duzine seglen samplova) se posmatra kao jedan veliki, u jednom fajlu je segcount velikih segmenata
+
     for i in range(l):
         file = files[i][:-4]
         rates[i], audio = load('../base/MIR-1K/Wavfile/' + file + '.wav', mono=True)
@@ -43,7 +46,7 @@ def svmtest(long=False):
 
     clf = svm.SVC(kernel='poly', degree=2, cache_size=500)
     scaler = None
-    for ncep in range(30, 40):
+    for ncep in range(1, 100):
         print('{}:'.format(ncep))
 
         tp = 0; fp = 0; tn = 0; fn = 0

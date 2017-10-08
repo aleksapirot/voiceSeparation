@@ -63,6 +63,7 @@ def horver(audio, rate):
     '''plt.pcolormesh(mhl)
     plt.show()'''
 
+    #TODO Highpass
     voc = inversestft(cspectl * mhl, winlenl, winlenl - stepl)[:len(audio)]  # samo vokali
     mus = audio - voc  # samo muzika
 
