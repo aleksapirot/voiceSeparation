@@ -84,21 +84,25 @@ def svmtest(long=False):
 
             predict = clf.predict(scaler.transform(X))
             a = 0
+            ap = 0; an = 0
             for i in range(ltrain, ltrain+ltest):
                 i = inds[i]
                 for j in range(segcounts[i]):
                     if voices[i][j]:
+                        ap += 1
                         if predict[a]:
                             tp += 1
                         else:
                             fn += 1
                     else:
+                        an += 1
                         if predict[a]:
                             fp += 1
                         else:
                             tn += 1
                     a += 1
 
+        print(ap, an)
         print(tp, fp, tn, fn)
         perc = 100 * tn / (tn + fn)
         print('{:.2f}%'.format(perc))

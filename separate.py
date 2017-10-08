@@ -38,8 +38,8 @@ if __name__ == '__main__':
     parser.add_argument('--long', action='store_true')
     args = parser.parse_args()
 
-    alg = args.alg.lower()
-    if alg == 'train':
+    alg = args.alg.upper()
+    if alg == 'TRAIN':
         if args.cp:
             cp.run('train()')
         else:
@@ -47,7 +47,7 @@ if __name__ == '__main__':
             train()
             l = time.time() - start
             print('{:.1f}s za treniranje'.format(l))
-    elif alg == 'svm':
+    elif alg == 'SVM':
         if args.cp:
             cp.run('svmtest()')
         else:
