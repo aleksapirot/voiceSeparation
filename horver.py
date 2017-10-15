@@ -26,7 +26,7 @@ stepl = 256
 
 
 # ne koriste se dijagonalni filteri, samo horizontalni i vertikalni
-def horver(audio, rate):
+def horver(audio, rate, highpass=False):
     fh, th, cspecth, specth = magspect(audio, rate, winlenh, winlenh - steph)
     specth = specth.astype(np.float64)
     # specth = specth*np.ones(specth.shape, dtype=np.float)
@@ -63,8 +63,4 @@ def horver(audio, rate):
     '''plt.pcolormesh(mhl)
     plt.show()'''
 
-    #TODO Highpass
-    voc = inversestft(cspectl * mhl, winlenl, winlenl - stepl)[:len(audio)]  # samo vokali
-    mus = audio - voc  # samo muzika
-
-    return voc, mus
+    return applymask(audio, cspectl, mhl, winlenl, winlenl - stepl, highpass, rate)

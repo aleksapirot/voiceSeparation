@@ -3,27 +3,32 @@ import time
 import cProfile as cp
 from pathlib import Path
 
-from adaptive_repet import adtrepet, repet, repeth
+from adaptive_repet import adtrepet, repet
 from dmf import dmf, horver
 from plca import plca, train
 from common import load, save
 from svmtest import svmtest
 
 
-funcs = {'R': repet, 'RH': repeth, 'R_ADT': adtrepet, 'R_SIM': None,
+funcs = {'R': repet, 'R_ADT': adtrepet, 'R_SIM': None,
          'HV': horver, 'DMF': dmf, 'PLCA': plca}
 
 
 def apply(algorithm, audio, rate):
     dtype = audio.dtype
     algorithm = algorithm.upper()
+
     if '-' in algorithm:
         algs = algorithm.split('-')
-        voice1, music1 = funcs[algs[0]](audio, rate)
-        v, _ = funcs[algs[1]](voice1, rate)
-        _, m = funcs[algs[1]](music1, rate)
+        voice1, music1 = apply(algs[0], audio, rate)
+        v, _ = apply(algs[1], voice1, rate)
+        _, m = apply(algs[1], music1, rate)
     else:
-        v, m = funcs[algorithm](audio, rate)
+        if algorithm[-1] == 'H':
+            v, m = funcs[algorithm[:-1]](audio, rate, True)
+        else:
+            v, m = funcs[algorithm](audio, rate, False)
+
 
     return v.astype(dtype), m.astype(dtype)
 

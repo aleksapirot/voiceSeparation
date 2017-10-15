@@ -69,6 +69,16 @@ def magspect(audio, rate, winlen, noverlap=None):
     return (f, t, cspect, spect)
 
 
+def applymask(audio, spect, mask, winlen, noverlap=None, highpass=False, rate=0):
+    if highpass:
+        cutoff = 100 #Hz
+        count = (2 * cutoff * mask.shape[0]) // rate
+        mask[0:count, :] = np.zeros((count, mask.shape[1]))
+    voice = inversestft(spect*mask, winlen, noverlap)[:len(audio)]
+    music = audio-voice
+    return voice, music
+
+
 # inverse stft
 def inversestft(spect, winlen, noverlap=None):
     if noverlap is None:

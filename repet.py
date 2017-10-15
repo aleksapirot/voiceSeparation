@@ -46,30 +46,7 @@ def repspect(spect, seg):
     return W
 
 
-# racuna masku
-def mask(spect, repspect, rate, highpass):
-    spect = spect.clip(min=np.finfo(spect.dtype.type).eps)
-    msk = repspect / spect
-    if highpass:
-        count = 2 * 100 * spect.shape[0] // rate
-        msk[0:count, :] = np.ones((count, msk.shape[1]))
-    return msk
-
-
-def applymask(mask, spect):
-    return (mask * spect, spect - mask * spect)
-
-
-# repet sa high pass filterom
-def repeth(audio, rate):
-    return rpt(audio, rate, True)
-
-
-def repet(audio, rate):
-    return rpt(audio, rate, False)
-
-
-def rpt(audio, rate, highpass):
+def repet(audio, rate, highpass):
     winlen = 1024
     f, t, cspect, spect = magspect(audio, rate, winlen=winlen)
     #plotspect((f, t, spect))
@@ -88,15 +65,7 @@ def rpt(audio, rate, highpass):
     rep = repspect(spect, seg)
     # plotspect((f, t, rep))
 
-    msk = mask(spect, rep, rate, highpass)
+    mask = rep / spect.clip(min=np.finfo(spect.dtype.type).eps)
     # plotspect((f, t, msk), maxcoef=1)
 
-    musicspect, voicespect = applymask(msk, cspect)
-    # plotspect((f, t, musicspect))
-    # plotspect((f, t, voicespect))
-
-
-    music = inversestft(musicspect, winlen)[0:len(audio)]
-    voice = inversestft(voicespect, winlen)[0:len(audio)]
-
-    return voice, music
+    return applymask(audio, cspect, 1-mask, winlen, None, highpass, rate)

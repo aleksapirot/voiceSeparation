@@ -2,7 +2,7 @@ from horver import *
 from diagfilt import *
 
 
-def dmf(audio, rate):
+def dmf(audio, rate, highpass):
     # sufiks h -za spektrogram visoke frenkvecijske rezolucije
     # l -... niske rezolucije
     fh, th, cspecth, specth = magspect(audio, rate, winlenh, winlenh - steph)
@@ -45,7 +45,4 @@ def dmf(audio, rate):
     '''plt.pcolormesh(mhl)
     plt.show()'''
 
-    voc = inversestft(cspectl * mhl, winlenl, winlenl - stepl)[:len(audio)]  # samo vokali
-    mus = audio - voc  # samo muzika
-
-    return voc, mus
+    return applymask(audio, cspectl, mhl, winlenl, winlenl-stepl, highpass, rate)

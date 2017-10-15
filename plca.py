@@ -119,7 +119,7 @@ def learn(S, nz, niter=100, Fmusic=None):
     return F, Z, T
 
 
-def plca(audio, rate):
+def plca(audio, rate, highpass=False):
     lbl = label(audio, rate)
     # print(lbl)
     mus = []
@@ -144,9 +144,6 @@ def plca(audio, rate):
     Pvoc = np.dot(Fvoc, np.dot(Z[nzb:, nzb:], T[nzb:, :]))
 
     # cspectmus = cspectmix*Pmus/(Pmus+Pvoc)
-    cspectvoc = cspectmix * Pvoc / (Pmus + Pvoc)
+    mask = Pvoc / (Pmus + Pvoc)
 
-    voice = inversestft(cspectvoc, wl, noverlap=ovl)[0:len(audio)]
-    music = audio - voice
-
-    return voice, music
+    return applymask(audio, cspectmix, mask, wl, ovl, highpass, rate)
