@@ -7,7 +7,7 @@ from common import load, evaluate, np
 from separate import apply
 
 
-def test(algorithm='R', resfolder='', longer=False):
+def test(algorithm, resfolder='', longer=False):
     dir = '../base/MIR-1K/Wavfile'
     metrics = ''  # isto menjamo i ime fajla
 
@@ -21,7 +21,7 @@ def test(algorithm='R', resfolder='', longer=False):
     i = 0
 
     # train()
-    savedir = '../results{}/{}'.format(resfolder, algorithm)
+    savedir = '../results{}/{}'.format(resfolder, algorithm.upper())
     Path(savedir).mkdir(parents=True, exist_ok=True)
     for i in range(count):
         print('{}/{}'.format(i+1, count))

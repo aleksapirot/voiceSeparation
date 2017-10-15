@@ -6,7 +6,7 @@ import mfcc
 import scipy.stats.mstats as ms
 import numpy.random as rand
 
-ncep = 39
+ncep = 25
 nother = 3
 
 def features(audio, rate, ncp=ncep):
@@ -126,6 +126,8 @@ def plca(audio, rate, highpass=False):
     for i in range(len(lbl)):
         if lbl[i] == 0:
             mus.extend(audio[i * biglen:(i + 1) * biglen])
+    if len(mus) == 0: #SVM nije prepoznao delove bez muzike
+        mus.extend(audio[:biglen]) #dodaje se bilo koji (prvi) segment kao muzika jer mora biti bar jedan
 
     wl = 2048
     ovl = 1024
