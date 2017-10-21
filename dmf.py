@@ -1,5 +1,4 @@
 from horver import *
-from diagfilt import *
 
 
 def dmf(audio, rate, highpass):

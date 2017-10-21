@@ -1,5 +1,5 @@
 from common import *
-from diagfilt import *
+from medfilt_speedup import *
 
 
 # pretvara herce u broj binova stft-a
