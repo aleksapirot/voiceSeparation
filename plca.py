@@ -133,13 +133,14 @@ def plca(audio, rate, highpass=False):
     ovl = 1024
     f, t, _, spectmus = magspect(mus, rate, wl, noverlap=ovl)
     # plotspect((f,t,spectmus))
-    nzb = 200
-    nzv = 200
-    Fmus, _, _ = learn(spectmus, niter=150, nz=nzb)
+    nzb = 170
+    nzv = 30
+    niter = 75
+    Fmus, _, _ = learn(spectmus, nzb, niter)
 
     f, t, cspectmix, spectmix = magspect(audio, rate, wl, noverlap=ovl)
     # plotspect((f,t,spectmix))
-    Fmix, Z, T = learn(spectmix, niter=150, nz=nzb + nzv, Fmusic=Fmus)
+    Fmix, Z, T = learn(spectmix, nzb + nzv, niter, Fmus)
 
     Pmus = np.dot(Fmus, np.dot(Z[:nzb, :nzb], T[:nzb, :]))
     Fvoc = Fmix[:, nzb:]
