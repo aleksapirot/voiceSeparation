@@ -25,9 +25,9 @@ def svmtest(longer=False):
 
     for i in range(l):
         file = files[i][:-4]
-        
+
         rates[i], audio = load(dir + file + '.wav', mono=True)
-        lbl = labels(file, segnum)
+        lbl = labels(file, segnum, longer)
 
         voices1 = []
         audios1 = []
@@ -45,7 +45,7 @@ def svmtest(longer=False):
     for ncep in range(1, 100):
         print('{}:'.format(ncep))
 
-        tp = 0; fp = 0; tn = 0; fn = 0
+        tp = 0; fp = 0; tn = 0; fn = 0; ap = 0; an = 0
         np.random.seed(0)
         inds = np.arange(l)
 
@@ -80,7 +80,6 @@ def svmtest(longer=False):
 
             predict = clf.predict(scaler.transform(X))
             a = 0
-            ap = 0; an = 0
             for i in range(ltrain, ltrain+ltest):
                 i = inds[i]
                 for j in range(segcounts[i]):
@@ -105,8 +104,3 @@ def svmtest(longer=False):
         perc = 100 * tn / (tn + fp)
         print('{:.2f}%'.format(perc))
         print('\n')
-
-        tp = 0
-        fp = 0
-        tn = 0
-        fn = 0

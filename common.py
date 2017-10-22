@@ -58,8 +58,8 @@ def save(audio, rate, path, mp3=True):
         wf.write(open(path, 'wb+'), rate, audio)
 
 
-def labels(file, segnum):
-    lbl = '../base/MIR-1K/vocal-nonvocalLabel/' + file + '.vocal'
+def labels(file, segnum, longer=False):
+    lbl = '../base/MIR-1K/vocal-nonvocalLabel/' + file + '.vocal' #TODO ako je longer ima nekoliko fajlova
     lbl = open(lbl, 'r')
     lines = lbl.readlines()
     lbl.close()

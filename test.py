@@ -31,7 +31,7 @@ def test(algorithm, resfolder='', longer=False):
         audio = audiol // 2 + audior // 2
 
         if algorithm == 'PLCAL':
-            voice, music = plca(audio, rate, lbl=labels(song, segnuml if longer else segnums))
+            voice, music = plca(audio, rate, lbl=labels(song, segnuml if longer else segnums, longer))
         else:
             voice, music = apply(algorithm, audio, rate)
 

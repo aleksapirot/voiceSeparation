@@ -55,7 +55,7 @@ def train(longer=False):
         file = files[i][:-4]
 
         rate, audio = load(dir + file + '.wav', mono=True)
-        lbl = labels(file, segnum)
+        lbl = labels(file, segnum, longer)
 
         for j in range(len(lbl)):
             start = segnum*j
@@ -71,7 +71,7 @@ def train(longer=False):
     joblib.dump([clf, scaler], 'plca.pkl' if not longer else 'plca-long.pkl')
 
 
-def label(audio, rate):
+def label(audio, rate, biglen):
     clf, scaler = joblib.load('plca.pkl')[:2] # TODO treba proemniti u plca-long.pkl za duze
     X = np.zeros([len(audio) // biglen, ncep + nother])
     for i in range(len(audio) // biglen):
@@ -119,9 +119,11 @@ def learn(S, nz, niter=100, Fmusic=None):
     return F, Z, T
 
 
-def plca(audio, rate, highpass=False, lbl=None):
+def plca(audio, rate, highpass=False, lbl=None, longer=False):
+    segnum = segnuml if longer else segnums
+    biglen = biglenl if longer else biglens
     if lbl is None:
-        lbl = label(audio, rate)
+        lbl = label(audio, rate, biglen)
     # print(lbl)
     mus = []
     for i in range(len(lbl)):
