@@ -33,7 +33,7 @@ def features(audio, rate, ncp=ncep):
 
 # fajl sa labelama za glas ima segmente duzine 20ms(seglen), posto je to dosta krakto vreme koristimo zajedno segnum segmenata (duzine biglen)
 # TODO treba da se istrenira posebno za duge
-segnums = 20
+segnums = 10
 segnuml = 50
 seglen = (20*16000)//1000
 biglens = segnums*seglen
