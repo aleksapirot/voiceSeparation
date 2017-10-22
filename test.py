@@ -5,15 +5,14 @@ from pathlib import Path
 
 from common import load, evaluate, np, labels
 from separate import apply
-from plca import plca, segnum
+from plca import plca, segnums, segnuml
 
 
 def test(algorithm, resfolder='', longer=False):
-    dir = '../base/MIR-1K/Wavfile'
+    dir = '../base/MIR-1K/UndividedWavfile/' if longer else '../base/MIR-1K/Wavfile/'
     metrics = ''  # isto menjamo i ime fajla
 
     if longer:
-        dir = '../base/MIR-1K/UndividedWavfile'
         resfolder = '-long' + resfolder
 
     count = len(os.listdir(dir))
@@ -32,7 +31,7 @@ def test(algorithm, resfolder='', longer=False):
         audio = audiol // 2 + audior // 2
 
         if algorithm == 'PLCAL':
-            voice, music = plca(audio, rate, lbl=labels(song, segnum))
+            voice, music = plca(audio, rate, lbl=labels(song, segnuml if longer else segnums))
         else:
             voice, music = apply(algorithm, audio, rate)
 

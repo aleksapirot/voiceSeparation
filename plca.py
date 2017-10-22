@@ -1,6 +1,8 @@
 from common import *
 from sklearn import svm, preprocessing
 from sklearn.externals import joblib
+import argparse
+import time
 import os
 import mfcc
 import scipy.stats.mstats as ms
@@ -30,16 +32,21 @@ def features(audio, rate, ncp=ncep):
 
 
 # fajl sa labelama za glas ima segmente duzine 20ms(seglen), posto je to dosta krakto vreme koristimo zajedno segnum segmenata (duzine biglen)
-segnum = 20
+# TODO treba da se istrenira posebno za duge
+segnums = 20
+segnuml = 50
 seglen = (20*16000)//1000
-biglen = segnum*seglen
+biglens = segnums*seglen
+biglenl = segnuml*seglen
 
-def train(long=False):
-    clf = svm.SVC(kernel='poly', degree=2, cache_size=500)
-    files = os.listdir('../base/MIR-1K/Wavfile/')
+def train(longer=False):
+    dir = '../base/MIR-1K/UndividedWavfile/' if longer else '../base/MIR-1K/Wavfile/'
+    files = os.listdir(dir)
     rand.seed(0)
     rand.shuffle(files)
     l = len(files)//2
+
+    segnum = segnuml if longer else segnums
 
     X = []
     y = []
@@ -47,7 +54,7 @@ def train(long=False):
         # print(i)
         file = files[i][:-4]
 
-        rate, audio = load('../base/MIR-1K/Wavfile/' + file + '.wav', mono=True)
+        rate, audio = load(dir + file + '.wav', mono=True)
         lbl = labels(file, segnum)
 
         for j in range(len(lbl)):
@@ -59,12 +66,13 @@ def train(long=False):
 
 
     scaler = preprocessing.StandardScaler().fit(X)
+    clf = svm.SVC(kernel='poly', degree=2, cache_size=500)
     clf.fit(scaler.transform(X), y)
-    joblib.dump([clf, scaler], 'plca.pkl')
+    joblib.dump([clf, scaler], 'plca.pkl' if not longer else 'plca-long.pkl')
 
 
 def label(audio, rate):
-    clf, scaler = joblib.load('plca.pkl')[:2]
+    clf, scaler = joblib.load('plca.pkl')[:2] # TODO treba proemniti u plca-long.pkl za duze
     X = np.zeros([len(audio) // biglen, ncep + nother])
     for i in range(len(audio) // biglen):
         X[i] = features(audio[i * biglen:(i + 1) * biglen], rate)
@@ -143,3 +151,30 @@ def plca(audio, rate, highpass=False, lbl=None):
     mask = Pvoc / (Pmus + Pvoc)
 
     return applymask(audio, cspectmix, mask, wl, ovl, highpass, rate)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('alg') # algoritam
+    parser.add_argument('--cp', action='store_true')
+    parser.add_argument('--long', action='store_true')
+    args = parser.parse_args()
+
+    alg = args.alg.upper()
+    if alg == 'TRAIN':
+        if args.cp:
+            cp.run('train(args.long)')
+        else:
+            start = time.time()
+            train(args.long)
+            l = time.time() - start
+            print('{:.1f}s za treniranje'.format(l))
+    elif alg == 'SVM':
+        if args.cp:
+            cp.run('svmtest(args.long)')
+        else:
+            start = time.time()
+            from svmtest import svmtest
+            svmtest(args.long)
+            l = time.time() - start
+            print('{:.1f}s za SVM test'.format(l))

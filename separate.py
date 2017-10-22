@@ -44,37 +44,21 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     alg = args.alg.upper()
-    if alg == 'TRAIN':
-        if args.cp:
-            cp.run('train()')
-        else:
-            start = time.time()
-            train()
-            l = time.time() - start
-            print('{:.1f}s za treniranje'.format(l))
-    elif alg == 'SVM':
-        if args.cp:
-            cp.run('svmtest()')
-        else:
-            start = time.time()
-            svmtest()
-            l = time.time() - start
-            print('{:.1f}s za SVM test'.format(l))
-    else:
-        rate, audio = load(args.input, True)
-        if args.cp:
-            cp.run('apply(args.alg, audio, rate)')
-        else:
-            start = time.time()
-            voice, music = apply(args.alg, audio, rate)
-            l = time.time() - start
-            print('{:.1f}s za {:.1f}s'.format(l, len(audio)/rate))
 
-            out = args.output
-            if out is None:
-                out = '../outputs'
-            Path(out).mkdir(parents=True, exist_ok=True)
-            name = Path(args.input).stem
-            ext = 'wav' if args.wav else 'mp3'
-            save(voice, rate, "{}/{}-{}-voice.{}".format(out, name, args.alg, ext), not args.wav)
-            save(music, rate, "{}/{}-{}-music.{}".format(out, name, args.alg, ext), not args.wav)
+    rate, audio = load(args.input, True)
+    if args.cp:
+        cp.run('apply(args.alg, audio, rate)')
+    else:
+        start = time.time()
+        voice, music = apply(args.alg, audio, rate)
+        l = time.time() - start
+        print('{:.1f}s za {:.1f}s'.format(l, len(audio)/rate))
+        
+        out = args.output
+        if out is None:
+            out = '../outputs'
+        Path(out).mkdir(parents=True, exist_ok=True)
+        name = Path(args.input).stem
+        ext = 'wav' if args.wav else 'mp3'
+        save(voice, rate, "{}/{}-{}-voice.{}".format(out, name, args.alg, ext), not args.wav)
+        save(music, rate, "{}/{}-{}-music.{}".format(out, name, args.alg, ext), not args.wav)

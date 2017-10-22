@@ -1,14 +1,16 @@
-from plca import plca, features, load, ncep, nother, np, rand, svm, preprocessing
+from plca import plca, features, load, ncep, nother, np, rand, svm, preprocessing, segnums, segnuml
+from common import labels
 import os
 import sys
 import cProfile as cp
 
 
-def svmtest(long=False):
-    files = np.sort(os.listdir('../base/MIR-1K/Wavfile'))
+def svmtest(longer=False):
+    dir = '../base/MIR-1K/UndividedWavfile/' if longer else '../base/MIR-1K/Wavfile/'
+    files = np.sort(os.listdir(dir))
     l = len(files)
 
-    segnum = 10
+    segnum = segnuml if longer else segnums
     seglen = (20*16000)//1000
     ntries = 10
     ltrain = 200
@@ -23,26 +25,20 @@ def svmtest(long=False):
 
     for i in range(l):
         file = files[i][:-4]
-        rates[i], audio = load('../base/MIR-1K/Wavfile/' + file + '.wav', mono=True)
-        lbl = '../base/MIR-1K/vocal-nonvocalLabel/' + file + '.vocal'
-        lines = open(lbl, 'r').readlines()
+        
+        rates[i], audio = load(dir + file + '.wav', mono=True)
+        lbl = labels(file, segnum)
 
         voices1 = []
         audios1 = []
-        segcount = len(lines)//segnum
+        segcount = len(lbl)
         segcounts[i] = segcount
         for j in range(segcount):
             start = segnum*j
-
             audios1.append(audio[start*seglen:(start + segnum) * seglen])
 
-            sum = 0
-            for k in range(segnum):
-                sum += int(lines[start+k])
-            voices1.append(1 if sum > segnum/2 else 0)
-
         audios.append(audios1)
-        voices.append(voices1)
+        voices.append(lbl)
 
     clf = svm.SVC(kernel='poly', degree=2, cache_size=500)
     scaler = None
