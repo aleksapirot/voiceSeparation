@@ -3,8 +3,9 @@ import time
 import argparse
 from pathlib import Path
 
-from common import load, evaluate, np
+from common import load, evaluate, np, labels
 from separate import apply
+from plca import plca, segnum
 
 
 def test(algorithm, resfolder='', longer=False):
@@ -20,8 +21,8 @@ def test(algorithm, resfolder='', longer=False):
     songs = np.sort(os.listdir(dir))[0:count]
     i = 0
 
-    # train()
-    savedir = '../results{}/{}'.format(resfolder, algorithm.upper())
+    algorithm = algorithm.upper()
+    savedir = '../results{}/{}'.format(resfolder, algorithm)
     Path(savedir).mkdir(parents=True, exist_ok=True)
     for i in range(count):
         print('{}/{}'.format(i+1, count))
@@ -30,7 +31,10 @@ def test(algorithm, resfolder='', longer=False):
         rate, audiol, audior = load('{}/{}.wav'.format(dir, song))
         audio = audiol // 2 + audior // 2
 
-        voice, music = apply(algorithm, audio, rate)
+        if algorithm == 'PLCAL':
+            voice, music = plca(audio, rate, lbl=labels(song, segnum))
+        else:
+            voice, music = apply(algorithm, audio, rate)
 
         '''if i < 10:
             save(music, rate, '{}/{}-music.wav'.format(savedir, name))

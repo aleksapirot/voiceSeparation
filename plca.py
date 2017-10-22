@@ -46,24 +46,17 @@ def train(long=False):
     for i in range(l):
         # print(i)
         file = files[i][:-4]
-        lbl = '../base/MIR-1K/vocal-nonvocalLabel/' + file + '.vocal'
-        lbl = open(lbl, 'r')
-        lines = lbl.readlines()
+
         rate, audio = load('../base/MIR-1K/Wavfile/' + file + '.wav', mono=True)
+        lbl = labels(file, segnum)
 
-        for j in range(len(lines)//segnum):
+        for j in range(len(lbl)):
             start = segnum*j
-
-            sum = 0
-            for k in range(segnum):
-                sum += int(lines[start+k])
-
-            voice = 1 if sum > segnum/2 else 0
-
             audio1 = audio[start*seglen:(start + segnum) * seglen]
-
             X.append(features(audio1, rate, ncep))
-            y.append(voice)
+
+        y.extend(lbl)
+
 
     scaler = preprocessing.StandardScaler().fit(X)
     clf.fit(scaler.transform(X), y)
@@ -115,12 +108,12 @@ def learn(S, nz, niter=100, Fmusic=None):
         T = norm(T * np.dot(F.T, R), axis=1)
         zs = np.sum(F, axis=0)
         Z = np.diagflat(zs)
-
     return F, Z, T
 
 
-def plca(audio, rate, highpass=False):
-    lbl = label(audio, rate)
+def plca(audio, rate, highpass=False, lbl=None):
+    if lbl is None:
+        lbl = label(audio, rate)
     # print(lbl)
     mus = []
     for i in range(len(lbl)):
@@ -133,8 +126,8 @@ def plca(audio, rate, highpass=False):
     ovl = 1024
     f, t, _, spectmus = magspect(mus, rate, wl, noverlap=ovl)
     # plotspect((f,t,spectmus))
-    nzb = 170
-    nzv = 30
+    nzb = 150
+    nzv = 50
     niter = 75
     Fmus, _, _ = learn(spectmus, nzb, niter)
 

@@ -58,6 +58,24 @@ def save(audio, rate, path, mp3=True):
         wf.write(open(path, 'wb+'), rate, audio)
 
 
+def labels(file, segnum):
+    lbl = '../base/MIR-1K/vocal-nonvocalLabel/' + file + '.vocal'
+    lbl = open(lbl, 'r')
+    lines = lbl.readlines()
+    lbl.close()
+
+    label = []
+    for i in range(len(lines)//segnum):
+        sum = 0
+        for j in range(segnum):
+            sum += int(lines[segnum*i+j])
+
+        voice = 1 if sum > segnum/3 else 0
+        label.append(voice)
+
+    return label
+
+
 # spectrogram
 def magspect(audio, rate, winlen, noverlap=None):
     if noverlap is None:
