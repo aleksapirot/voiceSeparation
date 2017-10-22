@@ -53,7 +53,7 @@ if __name__ == '__main__':
         print('{:.1f}s za {:.1f}s'.format(l, length))
         print('{:.1f}s po minutu'.format(l*60/length))
 
-        savedir = '../results{}/{}'.format(args.res, alg)
+        savedir = '../results{}{}/{}'.format('-long' if args.long else '', args.res, alg)
         Path(savedir).mkdir(parents=True, exist_ok=True)
         timing=''
         file = open('{}/timing{}.txt'.format(savedir, timing), 'w+')
