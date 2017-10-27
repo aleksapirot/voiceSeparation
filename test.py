@@ -30,8 +30,8 @@ def test(algorithm, resfolder='', longer=False):
         rate, audiol, audior = load('{}/{}.wav'.format(dir, song))
         audio = audiol // 2 + audior // 2
 
-        if algorithm == 'PLCAL':
-            voice, music = plca(audio, rate, lbl=labels(song, segnuml if longer else segnums, longer))
+        if 'PLCAL' in algorithm:
+            voice, music = plca(audio, rate, len(audio)>5, labels(song, segnuml if longer else segnums, longer))
         else:
             voice, music = apply(algorithm, audio, rate)
 
