@@ -35,6 +35,10 @@ def load(path, mono=False):
         return (rate, np.trim_zeros(audio))
 
 
+def clip(a):
+    return a.clip(min=np.finfo(np.float64).eps)
+
+
 # cuva audio fajl
 def save(audio, rate, path, mp3=True):
     if mp3:

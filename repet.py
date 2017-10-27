@@ -65,7 +65,7 @@ def repet(audio, rate, highpass):
     rep = repspect(spect, seg)
     # plotspect((f, t, rep))
 
-    mask = rep / spect.clip(min=np.finfo(spect.dtype.type).eps)
+    mask = rep / clip(spect)
     # plotspect((f, t, msk), maxcoef=1)
 
     return applymask(audio, cspect, 1-mask, winlen, None, highpass, rate)

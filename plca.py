@@ -109,7 +109,7 @@ def learn(S, nz, niter=100, Fmusic=None):
 
     for i in range(niter):
         # print(i)
-        P = np.dot(F, np.dot(Z, T))
+        P = clip(np.dot(F, np.dot(Z, T)))
         R = S / P
 
         F[:, nzb:] = norm(F[:, nzb:] * np.dot(R, T[nzb:, :].T), axis=0)
@@ -150,7 +150,7 @@ def plca(audio, rate, highpass=False, lbl=None, longer=False):
     Pvoc = np.dot(Fvoc, np.dot(Z[nzb:, nzb:], T[nzb:, :]))
 
     # cspectmus = cspectmix*Pmus/(Pmus+Pvoc)
-    mask = Pvoc / (Pmus + Pvoc)
+    mask = Pvoc / clip(Pmus + Pvoc)
 
     return applymask(audio, cspectmix, mask, wl, ovl, highpass, rate)
 
