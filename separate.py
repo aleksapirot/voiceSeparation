@@ -21,8 +21,8 @@ def apply(algorithm, audio, rate):
     if '-' in algorithm:
         algs = algorithm.split('-')
         voice1, music1 = apply(algs[0], audio, rate)
-        v, _ = apply(algs[1], voice1, rate)
-        _, m = apply(algs[1], music1, rate)
+        v, _ = apply('-'.join(algs[1:]), voice1, rate)
+        _, m = apply('-'.join(algs[1:]), music1, rate)
     else:
         if algorithm[-1] == 'H':
             v, m = funcs[algorithm[:-1]](audio, rate, True)
