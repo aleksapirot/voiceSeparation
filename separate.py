@@ -1,4 +1,6 @@
 import argparse
+import os
+import numpy as np
 import time
 import cProfile as cp
 from pathlib import Path
@@ -41,10 +43,13 @@ if __name__ == '__main__':
     parser.add_argument('--wav', action='store_true')
     parser.add_argument('--cp', action='store_true')
     parser.add_argument('--long', action='store_true')
+    parser.add_argument('--mir', type=int)
     args = parser.parse_args()
 
     alg = args.alg.upper()
 
+    if args.mir is not None:
+        args.input = "../base/MIR-1K/Wavfile/" + np.sort(os.listdir("../base/MIR-1K/Wavfile"))[args.mir-1]
     rate, audio = load(args.input, True)
     if args.cp:
         cp.run('apply(args.alg, audio, rate)')
