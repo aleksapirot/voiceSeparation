@@ -12,6 +12,8 @@ ncep = 25
 nother = 3
 
 def features(audio, rate, ncp=ncep):
+    audio = audio.astype(np.float64).clip(min=np.finfo(np.float64).eps)
+
     feats = np.empty(ncp + nother)
 
     coefs = mfcc.mfcc(audio, samplerate=rate, numcep=ncp, nfilt=2 * ncp, nfft=4096, winlen=4096 / rate,
@@ -20,13 +22,12 @@ def features(audio, rate, ncp=ncep):
 
     fft = np.abs(np.fft.rfft(audio))
     pwr = fft ** 2
-    pwr.clip(min=np.finfo(pwr.dtype.type).eps)
     feats[ncp] = ms.gmean(pwr) / np.mean(pwr)
 
     freq = np.fft.rfftfreq(len(audio), 1 / rate)
     feats[ncp + 1] = np.sum(fft * freq) / np.sum(fft)
 
-    feats[ncp + 2] = np.sqrt(np.mean(np.square(audio.astype(np.float64))))
+    feats[ncp + 2] = np.sqrt(np.mean(np.square(audio)))
 
     return feats
 
