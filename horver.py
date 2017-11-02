@@ -42,7 +42,7 @@ def horver(audio, rate, highpass=False):
     # plt.colorbar()
     # plt.show()
 
-    mph = (vfh * vfh) / (hfh * hfh + vfh * vfh)  # maska za perkusije (i glas)
+    mph = (vfh * vfh) / clip(hfh * hfh + vfh * vfh)  # maska za perkusije (i glas)
     # print(mph[0,0])
     # plt.pcolormesh(mph)
     # plt.colorbar()
@@ -59,7 +59,7 @@ def horver(audio, rate, highpass=False):
     vfl = vertfilter(spectl, verbinl)
     hfl = horfilter(spectl, horbinl)
 
-    mhl = hfl ** 2 / (vfl ** 2 + hfl ** 2)  # maska za glas
+    mhl = hfl ** 2 / clip(vfl ** 2 + hfl ** 2)  # maska za glas
     '''plt.pcolormesh(mhl)
     plt.show()'''
 

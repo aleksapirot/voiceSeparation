@@ -11,8 +11,9 @@ import numpy.random as rand
 ncep = 25
 nother = 3
 
+
 def features(audio, rate, ncp=ncep):
-    audio = audio.astype(np.float64).clip(min=np.finfo(np.float64).eps)
+    audio = clip(audio.astype(np.float64))
 
     feats = np.empty(ncp + nother)
 
