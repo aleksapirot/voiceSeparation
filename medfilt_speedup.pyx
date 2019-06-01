@@ -26,7 +26,6 @@ cdef DTYPE_t median(np.ndarray[DTYPE_t, ndim=1] x, int start, int end):
     else:
         return x[mid]
 
-
 #@cython.boundscheck(False)
 #@cython.wraparound(False)
 def diagfilter(np.ndarray[DTYPE_t, ndim=2] spect, int steph, int stepw, int count):
@@ -41,21 +40,19 @@ def diagfilter(np.ndarray[DTYPE_t, ndim=2] spect, int steph, int stepw, int coun
     if h < 0:
         h = -h
 
-    #TODO
     for i in range(h, m - h):
         for j in range(0, w):
             for k in range(-(j // stepw), half + 1):
                 values[k + half] = spect[i + k * steph, j + k * stepw]
-            spect[i, j] = median(values, half-(j//stepw), count)
+            spect[i, j] = median(values, half - (j // stepw), count)
         for j in range(w, n - w):
             for k in range(-half, half + 1):
                 values[k + half] = spect[i + k * steph, j + k * stepw]
             spect[i, j] = median(values, 0, count)
-        for j in range(n-w, n):
-            for k in range(-half, (n-j)//stepw):
+        for j in range(n - w, n):
+            for k in range(-half, (n - j) // stepw):
                 values[k + half] = spect[i + k * steph, j + k * stepw]
-            spect[i, j] = median(values, 0,  half + (n - j)//stepw)
-
+            spect[i, j] = median(values, 0, half + (n - j) // stepw)
 
     return spect
 
@@ -107,5 +104,22 @@ def horfilter(np.ndarray[DTYPE_t, ndim=2] spect, int count):
             for k in range(-half, n - j):
                 values[k + half] = spect[i, j + k]
             spect[i, j] = median(values, 0, half + n - j)
-
     return spect
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def matrixmax(np.ndarray[DTYPE_t, ndim=3] matrices):
+    cdef int c = matrices.shape[2]
+    cdef int n = matrices.shape[0]
+    cdef int m = matrices.shape[1]
+    cdef int i, j, k
+    cdef DTYPE_t maxh
+    cdef np.ndarray[DTYPE_t, ndim=2] values = np.zeros((n, m), dtype=DTYPE)
+    for i in range(n):
+        for j in range(m):
+            maxh = matrices[i, j, 0]
+            for k in range(1, c):
+                if matrices[i, j, k] > maxh:
+                    maxh = matrices[i, j, k]
+            values[i, j] = maxh
+    return values
